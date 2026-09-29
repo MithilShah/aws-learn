@@ -1,0 +1,125 @@
+/* ============================================================
+   Global shell + prose styles for the AWS learning journeys.
+   Ported from the Agentic AI book site (same look: sticky sidebar,
+   centred reading column, violet/indigo accents), trimmed of book-only
+   pieces (audio, newsletter, reactions, chapter widgets).
+   Muted text colours are chosen to meet WCAG AA contrast on white.
+   ============================================================ */
+:root {
+  /* brand accents (from the book) */
+  --w-violet: #6d28d9;
+  --w-violet-2: #8b5cf6;
+  --w-indigo: #4f46e5;
+  --w-teal: #0d9488;
+  --w-orange: #ea580c;
+  --w-pink: #db2777;
+  --w-amber: #d97706;
+  --w-ink: #1e1b4b;
+
+  /* text + surfaces */
+  --ink: #1f2937;
+  --ink-2: #334155;
+  --ink-3: #374151;
+  --muted: #64748b; /* 4.7:1 on white — smallest text colour we use */
+  --border: #e5e7eb;
+  --surface: #fff;
+  --surface-2: #f8fafc;
+  --sidebar-bg: #fbfbfd;
+  --tint: rgba(109, 40, 217, 0.07);
+  --tint-strong: rgba(109, 40, 217, 0.12);
+  --focus: #4f46e5;
+
+  /* layout */
+  --content-max: 820px;
+  --sidebar-w: 300px;
+
+  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+}
+body {
+  margin: 0;
+  font-family: var(--font-sans);
+  color: var(--ink);
+  background: var(--surface);
+  line-height: 1.7;
+  font-size: 16px;
+}
+
+/* ---- Accessibility helpers ---- */
+:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; border-radius: 4px; }
+.skip-link {
+  position: absolute; left: 12px; top: -48px; z-index: 100;
+  background: var(--w-violet); color: #fff; padding: 8px 14px; border-radius: 8px;
+  font-weight: 700; text-decoration: none;
+}
+.skip-link:focus { top: 12px; }
+.visually-hidden {
+  position: absolute !important; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+
+/* ---- App shell: sticky sidebar + scrolling content ---- */
+.layout { display: flex; min-height: 100vh; }
+.sidebar {
+  width: var(--sidebar-w); flex: 0 0 var(--sidebar-w);
+  border-right: 1px solid var(--border);
+  padding: 24px 20px 48px; position: sticky; top: 0; height: 100vh;
+  overflow-y: auto; background: var(--sidebar-bg);
+}
+.content { flex: 1 1 auto; min-width: 0; display: flex; justify-content: center; }
+.content-inner { width: 100%; max-width: var(--content-max); padding: 40px 32px 96px; }
+
+/* ---- Sidebar brand + nav ---- */
+.brand { display: block; text-align: center; text-decoration: none; padding: 6px 0; }
+.brand-logo { width: 180px; max-width: 80%; height: auto; display: block; margin: 0 auto; }
+.brand-sub { display: block; font-size: 14px; font-weight: 700; color: var(--ink);
+  margin-top: 6px; line-height: 1.4; }
+.brand-author { display: block; text-align: center; font-size: 13px;
+  color: var(--muted); margin: 2px 0 16px; line-height: 1.4; }
+.brand-author a { color: var(--muted); text-decoration: none; font-weight: 500; }
+.brand-author a:hover { color: var(--w-indigo); text-decoration: underline; }
+
+.sidebar nav ul { list-style: none; margin: 0; padding: 0; }
+.sidebar nav .part { font-size: 12px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: .06em; color: var(--muted); margin: 18px 0 6px; }
+.sidebar nav a { display: block; padding: 6px 10px; border-radius: 7px;
+  color: var(--ink-2); text-decoration: none; font-size: 14px; line-height: 1.4; }
+.sidebar nav a:hover { background: var(--tint); color: var(--w-violet); }
+.sidebar nav a[aria-current="page"] { background: var(--tint-strong);
+  color: var(--w-violet); font-weight: 700; }
+
+/* ---- Prose (step pages, hub, 404) ---- */
+.prose h1 { font-size: 32px; line-height: 1.2; margin: 0 0 24px; }
+.prose h2 { font-size: 24px; line-height: 1.3; margin: 40px 0 14px; padding-top: 8px; }
+.prose h3 { font-size: 19px; line-height: 1.35; margin: 28px 0 10px; }
+.prose p, .prose li { font-size: 16.5px; }
+.prose a { color: var(--w-indigo); text-decoration: underline; text-underline-offset: 2px; }
+.prose a:hover { color: var(--w-violet); }
+.prose img { max-width: 100%; height: auto; border-radius: 10px; }
+.prose hr { border: 0; border-top: 1px solid var(--border); margin: 32px 0; }
+.prose blockquote { border-left: 4px solid var(--w-violet); margin: 20px 0;
+  padding: 4px 18px; background: rgba(109,40,217,.05); border-radius: 0 8px 8px 0; color: var(--ink-3); }
+.prose table { border-collapse: collapse; width: 100%; margin: 20px 0; font-size: 14.5px;
+  display: block; overflow-x: auto; }
+.prose th, .prose td { border: 1px solid var(--border); padding: 8px 12px; text-align: left; vertical-align: top; }
+.prose th { background: var(--surface-2); font-weight: 700; }
+.prose :not(pre) > code { background: #f1f5f9; padding: 2px 6px; border-radius: 5px;
+  font-size: 0.88em; font-family: var(--font-mono); }
+.prose pre { border-radius: 10px; padding: 16px 18px; overflow-x: auto; font-size: 13.5px; margin: 20px 0; }
+.prose .lede { font-size: 18px; color: var(--ink-3); }
+
+/* ---- Mobile ---- */
+@media (max-width: 860px) {
+  .layout { flex-direction: column; }
+  /* flex: none — otherwise the desktop flex-basis (300px) becomes a fixed
+     *height* once the layout stacks, leaving a gap under short sidebars. */
+  .sidebar { flex: none; width: 100%; height: auto; position: static; border-right: 0;
+    border-bottom: 1px solid var(--border); padding-bottom: 20px; }
+  .content-inner { padding: 24px 18px 72px; }
+}

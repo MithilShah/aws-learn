@@ -1,0 +1,75 @@
+---
+// BaseLayout — page shell plus the server-rendered <head>, so crawlers see
+// every SEO tag without running JS. All URLs come from src/lib/urls.ts or
+// Astro.site/Astro.url, never a hardcoded '/aws'. Task 4 extends the head
+// (share images, GoatCounter, fuller JSON-LD).
+import Sidebar from '../components/Sidebar.astro';
+import { SITE_NAME, AUTHOR } from '../data/site';
+import { withBase } from '../lib/urls';
+import '../styles/global.css';
+
+export interface Props {
+  /** Page title without the site suffix. */
+  title: string;
+  description: string;
+  ogType?: 'website' | 'article';
+  /** Absolute URL of the share image. */
+  ogImage?: string;
+  /** One JSON-LD object or several. */
+  jsonLd?: Record<string, unknown> | Record<string, unknown>[];
+  /** Keep the page out of search results (e.g. 404). Also drops the canonical. */
+  noindex?: boolean;
+}
+
+const { title, description, ogType = 'article', ogImage, jsonLd, noindex = false } = Astro.props;
+
+// Astro.url.pathname already includes the base ('/aws/config/').
+const canonical = new URL(Astro.url.pathname, Astro.site).href;
+const fullTitle = title === SITE_NAME ? title : `${title} · ${SITE_NAME}`;
+// Escape '<' so content can never close the <script> tag early.
+const jsonLdText = jsonLd ? JSON.stringify(jsonLd).replace(/</g, '\\u003c') : undefined;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{fullTitle}</title>
+    <meta name="description" content={description} />
+    <meta name="author" content={AUTHOR} />
+    {noindex ? <meta name="robots" content="noindex, follow" /> : <link rel="canonical" href={canonical} />}
+
+    <!-- Open Graph (LinkedIn / Slack / Facebook) -->
+    <meta property="og:type" content={ogType} />
+    <meta property="og:site_name" content={SITE_NAME} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    {!noindex && <meta property="og:url" content={canonical} />}
+    {ogImage && <meta property="og:image" content={ogImage} />}
+
+    <!-- Twitter / X -->
+    <meta name="twitter:card" content={ogImage ? 'summary_large_image' : 'summary'} />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    {ogImage && <meta name="twitter:image" content={ogImage} />}
+
+    {jsonLdText && <script type="application/ld+json" set:html={jsonLdText} />}
+
+    <link rel="icon" href={withBase('favicon.ico')} sizes="any" />
+    <link rel="icon" type="image/png" href={withBase('favicon-32.png')} sizes="32x32" />
+    <link rel="icon" type="image/png" href={withBase('favicon-192.png')} sizes="192x192" />
+    <link rel="apple-touch-icon" href={withBase('apple-touch-icon.png')} />
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+    <div class="layout">
+      <Sidebar />
+      <main id="main" class="content" tabindex="-1">
+        <div class="content-inner">
+          <slot />
+        </div>
+      </main>
+    </div>
+  </body>
+</html>

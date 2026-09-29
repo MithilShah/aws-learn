@@ -1,0 +1,22 @@
+# --- secrets (SSH host/user/key path for deploy.sh) ---
+deploy.config
+
+# --- build output ---
+site/dist/
+site/.astro/
+
+# --- deps ---
+node_modules/
+
+# --- test output ---
+site/coverage/
+site/test-results/
+site/playwright-report/
+site/blob-report/
+site/playwright/.cache/
+
+# --- logs ---
+*.log
+
+# --- os / editor cruft ---
+.DS_Store

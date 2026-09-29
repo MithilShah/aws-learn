@@ -1,0 +1,27 @@
+---
+// Sidebar — brand + navigation. Task 3 adds journey steps, the current
+// step's section outline (scroll-spy), search and progress.
+import { SECTION_NAME, AUTHOR, AUTHOR_URL } from '../data/site';
+import { withBase } from '../lib/urls';
+
+const hubPath = withBase();
+const isHub = Astro.url.pathname === hubPath;
+---
+<aside class="sidebar">
+  <a href={hubPath} class="brand">
+    <img
+      src={withBase('studytrails-logo.png')}
+      alt="StudyTrails"
+      class="brand-logo"
+      width="289"
+      height="71"
+    />
+    <span class="brand-sub">{SECTION_NAME}</span>
+  </a>
+  <div class="brand-author">by <a href={AUTHOR_URL} target="_blank" rel="noopener">{AUTHOR}</a></div>
+  <nav aria-label="Journeys">
+    <ul>
+      <li><a href={hubPath} aria-current={isHub ? 'page' : undefined}>All journeys</a></li>
+    </ul>
+  </nav>
+</aside>

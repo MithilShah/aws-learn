@@ -1,0 +1,20 @@
+---
+// /aws/ — hub page listing every service journey. Placeholder until Task 2
+// adds the services registry and Task 11 writes the final copy.
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { SECTION_NAME } from '../data/site';
+
+const description =
+  'Free, beginner-friendly learning journeys for AWS services, with interactive diagrams and every fact checked against the official AWS documentation.';
+---
+<BaseLayout title={`${SECTION_NAME} for Beginners`} description={description} ogType="website">
+  <article class="prose">
+    <h1>{SECTION_NAME}</h1>
+    <p class="lede">
+      Step-by-step, beginner-friendly guides to AWS services. Each journey explains one service
+      with interactive diagrams, and every fact is checked against the official AWS documentation.
+    </p>
+    <h2>Journeys</h2>
+    <p>The first journey, AWS Config, is being written now.</p>
+  </article>
+</BaseLayout>

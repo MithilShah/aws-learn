@@ -1,0 +1,20 @@
+---
+// Custom 404. Apache serves it for missing URLs under /aws/ (ErrorDocument
+// in .htaccess, Task 12), so every link here must be root-relative via
+// withBase — the page can be shown at any depth.
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { SECTION_NAME } from '../data/site';
+import { withBase } from '../lib/urls';
+---
+<BaseLayout
+  title="Page not found"
+  description="This page doesn't exist. Browse all AWS learning journeys instead."
+  ogType="website"
+  noindex
+>
+  <article class="prose">
+    <h1>Page not found</h1>
+    <p class="lede">We couldn't find that page. It may have moved, or the link may have a typo.</p>
+    <p><a href={withBase()}>Browse all {SECTION_NAME}</a></p>
+  </article>
+</BaseLayout>
