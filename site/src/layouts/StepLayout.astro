@@ -1,0 +1,48 @@
+---
+// Layout for every page inside a journey: the overview (slug = null) and
+// each step. Adds breadcrumbs, a "Step N of M" eyebrow, the page's sources
+// and prev/next links around the MDX content passed in the default slot.
+import BaseLayout from './BaseLayout.astro';
+import Breadcrumbs, { type Crumb } from '../components/Breadcrumbs.astro';
+import PrevNext from '../components/PrevNext.astro';
+import Sources from '../components/Sources.astro';
+import { SECTION_NAME } from '../data/site';
+import type { JourneyEntry } from '../lib/content';
+import { neighbors, overviewPath, stepNumber, type Journey } from '../lib/journey';
+import { withBase } from '../lib/urls';
+
+interface Props {
+  journey: Journey<JourneyEntry>;
+  entry: JourneyEntry;
+  /** Step slug, or null for the journey overview. */
+  slug: string | null;
+}
+
+const { journey, entry, slug } = Astro.props;
+const { service, steps } = journey;
+const { title, navTitle, description, sources, lastVerified } = entry.data;
+
+const hub: Crumb = { label: SECTION_NAME, href: withBase() };
+const crumbs: Crumb[] =
+  slug === null
+    ? [hub, { label: service.name }]
+    : [hub, { label: service.name, href: withBase(overviewPath(service.id)) }, { label: navTitle }];
+
+const stepCount = `${steps.length} ${steps.length === 1 ? 'step' : 'steps'}`;
+const eyebrow =
+  slug === null
+    ? `${service.name} · Beginner journey · ${stepCount}`
+    : `${service.name} · Step ${stepNumber(journey, slug)} of ${steps.length}`;
+
+const { prev, next } = neighbors(journey, slug);
+---
+<BaseLayout title={title} description={description}>
+  <Breadcrumbs items={crumbs} />
+  <article class="prose">
+    <p class="eyebrow">{eyebrow}</p>
+    <h1>{title}</h1>
+    <slot />
+    <Sources sources={sources} lastVerified={lastVerified} />
+  </article>
+  <PrevNext prev={prev} next={next} nextKicker={slug === null ? 'Start the journey' : 'Next'} />
+</BaseLayout>

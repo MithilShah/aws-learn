@@ -1,0 +1,28 @@
+---
+title: "AWS Config Rules Explained"
+navTitle: "Config rules"
+description: "How AWS Config rules check your resources: managed and custom rules, change-triggered and periodic evaluations, and the four evaluation results."
+summary: "Managed and custom rules, when evaluations run, and what results like COMPLIANT and NON_COMPLIANT mean."
+order: 3
+sources:
+  - title: "Components of an AWS Config Rule"
+    url: https://docs.aws.amazon.com/config/latest/developerguide/evaluate-config-rules.html
+  - title: "AWS Config terminology and concepts"
+    url: https://docs.aws.amazon.com/config/latest/developerguide/config-concepts.html
+  - title: "encrypted-volumes"
+    url: https://docs.aws.amazon.com/config/latest/developerguide/encrypted-volumes.html
+  - title: "AWS Config FAQs"
+    url: https://aws.amazon.com/config/faq/
+lastVerified: 2026-09-29
+---
+
+An AWS Config rule is a compliance check for the configuration settings of your AWS resources.
+AWS Config evaluates whether your resources comply with your rules and shows you the results.
+Rules report problems. They don't stop anyone from making a change.
+
+## What this step covers
+
+- Managed rules and custom rules
+- When rules run: on configuration changes, on a schedule, or both
+- The four evaluation results, such as `COMPLIANT` and `NON_COMPLIANT`
+- Why rules detect problems rather than prevent them

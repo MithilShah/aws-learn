@@ -1,0 +1,30 @@
+---
+// Previous / next links between the pages of a journey.
+import type { PageLink } from '../lib/journey';
+import { withBase } from '../lib/urls';
+
+interface Props {
+  prev?: PageLink;
+  next?: PageLink;
+  /** Word shown above the next link, e.g. 'Start the journey' on the overview. */
+  nextKicker?: string;
+}
+
+const { prev, next, nextKicker = 'Next' } = Astro.props;
+---
+{(prev || next) && (
+  <nav class="prev-next" aria-label="Journey pages">
+    {prev && (
+      <a class="pn pn-prev" href={withBase(prev.path)} rel="prev">
+        <span class="pn-kicker"><span aria-hidden="true">←</span>Previous</span>
+        <span class="pn-label">{prev.label}</span>
+      </a>
+    )}
+    {next && (
+      <a class="pn pn-next" href={withBase(next.path)} rel="next">
+        <span class="pn-kicker">{nextKicker}<span aria-hidden="true">→</span></span>
+        <span class="pn-label">{next.label}</span>
+      </a>
+    )}
+  </nav>
+)}

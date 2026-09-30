@@ -1,0 +1,36 @@
+---
+// /aws/<service>/ — a journey's overview: its intro (index.mdx) and the
+// ordered list of steps.
+import type { GetStaticPaths, InferGetStaticPropsType } from 'astro';
+import { render } from 'astro:content';
+import StepLayout from '../../layouts/StepLayout.astro';
+import { getJourneys } from '../../lib/content';
+import { stepPath, stepSlug } from '../../lib/journey';
+import { withBase } from '../../lib/urls';
+
+export const getStaticPaths = (async () => {
+  const journeys = await getJourneys();
+  return journeys.map((journey) => ({ params: { service: journey.service.id }, props: { journey } }));
+}) satisfies GetStaticPaths;
+
+type Props = InferGetStaticPropsType<typeof getStaticPaths>;
+
+const { journey } = Astro.props as Props;
+const { Content } = await render(journey.overview);
+---
+<StepLayout journey={journey} entry={journey.overview} slug={null}>
+  <Content />
+  {journey.steps.length > 0 && (
+    <section aria-labelledby="the-journey">
+      <h2 id="the-journey">The journey</h2>
+      <ol class="step-list">
+        {journey.steps.map((step) => (
+          <li>
+            <a href={withBase(stepPath(journey.service.id, stepSlug(step)))}>{step.data.navTitle}</a>
+            <p>{step.data.summary}</p>
+          </li>
+        ))}
+      </ol>
+    </section>
+  )}
+</StepLayout>

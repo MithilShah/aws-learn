@@ -1,0 +1,25 @@
+---
+// The AWS pages a page's facts were checked against, plus when.
+import type { Source } from '../lib/schema';
+import { formatDate, isoDate } from '../lib/format';
+
+interface Props {
+  sources: Source[];
+  lastVerified: Date;
+}
+
+const { sources, lastVerified } = Astro.props;
+---
+<section class="sources" aria-labelledby="sources-title">
+  <h2 id="sources-title">Sources</h2>
+  <p class="sources-note">
+    Checked against the official AWS documentation. Last verified <time datetime={isoDate(lastVerified)}>{formatDate(lastVerified)}</time>.
+  </p>
+  <ul>
+    {sources.map((source) => (
+      <li>
+        <a href={source.url}>{source.title}</a> <span class="source-host">{new URL(source.url).hostname}</span>
+      </li>
+    ))}
+  </ul>
+</section>

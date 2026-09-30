@@ -1,0 +1,31 @@
+---
+title: "How AWS Config Works"
+navTitle: "How it works"
+description: "Follow a change through AWS Config: resource discovery, configuration items, the configuration recorder, and delivery to Amazon S3 and Amazon SNS."
+summary: "How AWS Config discovers your resources, records configuration items, and delivers configuration history, snapshots and the configuration stream."
+order: 2
+sources:
+  - title: "How AWS Config Works"
+    url: https://docs.aws.amazon.com/config/latest/developerguide/how-does-config-work.html
+  - title: "AWS Config terminology and concepts"
+    url: https://docs.aws.amazon.com/config/latest/developerguide/config-concepts.html
+  - title: "Components of a Configuration Item"
+    url: https://docs.aws.amazon.com/config/latest/developerguide/config-item-table.html
+  - title: "Recording AWS Resources with AWS Config"
+    url: https://docs.aws.amazon.com/config/latest/developerguide/select-resources.html
+  - title: "Querying the Current Configuration State of AWS Resources with AWS Config"
+    url: https://docs.aws.amazon.com/config/latest/developerguide/querying-AWS-resources.html
+lastVerified: 2026-09-29
+---
+
+When you turn on AWS Config, it first discovers the supported resources in your account and
+creates a configuration item for each one. It then keeps recording new configuration items as
+those configurations change.
+
+## What this step covers
+
+- Resource discovery and tracking
+- What's inside a configuration item
+- The configuration recorder and recording frequency
+- Where the data goes: Amazon S3 and Amazon SNS
+- Querying your resources with advanced queries

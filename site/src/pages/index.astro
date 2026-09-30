@@ -1,9 +1,13 @@
 ---
-// /aws/ — hub page listing every service journey. Placeholder until Task 2
-// adds the services registry and Task 11 writes the final copy.
+// /aws/ — hub page listing every service journey. Task 11 writes the
+// final copy.
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { SECTION_NAME } from '../data/site';
+import { getJourneys } from '../lib/content';
+import { overviewPath } from '../lib/journey';
+import { withBase } from '../lib/urls';
 
+const journeys = await getJourneys();
 const description =
   'Free, beginner-friendly learning journeys for AWS services, with interactive diagrams and every fact checked against the official AWS documentation.';
 ---
@@ -15,6 +19,14 @@ const description =
       with interactive diagrams, and every fact is checked against the official AWS documentation.
     </p>
     <h2>Journeys</h2>
-    <p>The first journey, AWS Config, is being written now.</p>
+    <ul class="journey-cards">
+      {journeys.map(({ service, overview, steps }) => (
+        <li class="journey-card">
+          <h3><a href={withBase(overviewPath(service.id))}>{service.name}</a></h3>
+          <p>{overview.data.summary}</p>
+          <p class="journey-meta">Beginner · {steps.length} {steps.length === 1 ? 'step' : 'steps'}</p>
+        </li>
+      ))}
+    </ul>
   </article>
 </BaseLayout>

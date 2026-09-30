@@ -1,0 +1,26 @@
+---
+// /aws/<service>/<step>/ — one step of a journey (journeys/<service>/<step>.mdx).
+import type { GetStaticPaths, InferGetStaticPropsType } from 'astro';
+import { render } from 'astro:content';
+import StepLayout from '../../layouts/StepLayout.astro';
+import { getJourneys } from '../../lib/content';
+import { stepSlug } from '../../lib/journey';
+
+export const getStaticPaths = (async () => {
+  const journeys = await getJourneys();
+  return journeys.flatMap((journey) =>
+    journey.steps.map((entry) => ({
+      params: { service: journey.service.id, step: stepSlug(entry) },
+      props: { journey, entry },
+    })),
+  );
+}) satisfies GetStaticPaths;
+
+type Props = InferGetStaticPropsType<typeof getStaticPaths>;
+
+const { journey, entry } = Astro.props as Props;
+const { Content } = await render(entry);
+---
+<StepLayout journey={journey} entry={entry} slug={stepSlug(entry)}>
+  <Content />
+</StepLayout>

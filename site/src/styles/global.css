@@ -114,6 +114,58 @@ body {
 .prose pre { border-radius: 10px; padding: 16px 18px; overflow-x: auto; font-size: 13.5px; margin: 20px 0; }
 .prose .lede { font-size: 18px; color: var(--ink-3); }
 
+/* ---- Journey pages: breadcrumbs, eyebrow, sources, prev/next ---- */
+.breadcrumbs { margin: 0 0 18px; font-size: 14px; }
+.breadcrumbs ol { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 4px 8px; }
+.breadcrumbs li { display: flex; align-items: center; gap: 8px; color: var(--muted); }
+/* Separator is decorative: the alt text after "/" is empty, so screen readers
+   skip it (older browsers fall back to the first declaration). */
+.breadcrumbs li + li::before { content: "/"; content: "/" / ""; color: #94a3b8; }
+.breadcrumbs a { color: var(--ink-2); text-decoration: none; }
+.breadcrumbs a:hover { color: var(--w-violet); text-decoration: underline; }
+.breadcrumbs [aria-current="page"] { color: var(--muted); }
+
+.prose .eyebrow { margin: 0 0 8px; font-size: 13px; font-weight: 700; letter-spacing: .04em;
+  text-transform: uppercase; color: var(--w-violet); }
+
+.sources { margin-top: 48px; padding-top: 8px; border-top: 1px solid var(--border); }
+.prose .sources h2 { font-size: 18px; margin: 16px 0 6px; }
+.prose .sources-note { font-size: 14.5px; color: var(--muted); margin: 0 0 10px; }
+.sources ul { margin: 0; padding-left: 20px; }
+.prose .sources li { font-size: 15px; margin: 4px 0; }
+.source-host { font-size: 13px; color: var(--muted); white-space: nowrap; }
+
+.prev-next { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 40px; }
+.pn { display: flex; flex-direction: column; gap: 2px; padding: 14px 18px; border: 1px solid var(--border);
+  border-radius: 12px; text-decoration: none; color: var(--ink); background: var(--surface);
+  transition: border-color .15s, background .15s; }
+.pn:hover { border-color: var(--w-violet); background: rgba(109,40,217,.04); }
+.pn-next { grid-column: 2; text-align: right; }
+.pn-kicker { display: flex; gap: 6px; font-size: 13px; font-weight: 600; color: var(--muted); }
+.pn-next .pn-kicker { justify-content: flex-end; }
+.pn-label { font-size: 16px; font-weight: 700; color: var(--w-indigo); line-height: 1.4; }
+.pn:hover .pn-label { color: var(--w-violet); }
+
+/* Overview: ordered list of steps */
+.prose ol.step-list { list-style: none; padding: 0; margin: 16px 0 0; counter-reset: step; }
+.prose .step-list li { counter-increment: step; position: relative; padding: 12px 0 12px 48px;
+  border-top: 1px solid var(--border); }
+.prose .step-list li::before { content: counter(step); position: absolute; left: 0; top: 12px;
+  width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center;
+  background: var(--tint-strong); color: var(--w-violet); font-weight: 800; font-size: 15px; }
+.prose .step-list a { font-weight: 700; text-decoration: none; }
+.prose .step-list a:hover { text-decoration: underline; }
+.prose .step-list p { margin: 2px 0 0; font-size: 15px; color: var(--ink-3); }
+
+/* Hub: one card per service journey */
+.prose ul.journey-cards { list-style: none; padding: 0; margin: 16px 0 0; display: grid; gap: 16px; }
+.journey-card { border: 1px solid var(--border); border-radius: 14px; padding: 18px 20px; }
+.prose .journey-card h3 { margin: 0 0 4px; }
+.prose .journey-card h3 a { text-decoration: none; }
+.prose .journey-card h3 a:hover { text-decoration: underline; }
+.prose .journey-card p { margin: 0; }
+.prose .journey-meta { margin-top: 8px; font-size: 14px; color: var(--muted); }
+
 /* ---- Mobile ---- */
 @media (max-width: 860px) {
   .layout { flex-direction: column; }
@@ -122,4 +174,8 @@ body {
   .sidebar { flex: none; width: 100%; height: auto; position: static; border-right: 0;
     border-bottom: 1px solid var(--border); padding-bottom: 20px; }
   .content-inner { padding: 24px 18px 72px; }
+}
+@media (max-width: 560px) {
+  .prev-next { grid-template-columns: 1fr; }
+  .pn-next { grid-column: 1; }
 }
