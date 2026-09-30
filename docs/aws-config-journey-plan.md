@@ -90,7 +90,10 @@ AWS_Services/
   - Also: a sitemap, semantic headings, a "Key terms" definition list, internal links and a visible "Last verified" date.
 - Search: Pagefind indexes each article (`data-pagefind-body`) with a per-service filter.
 - Progress: stored in localStorage under `st-aws:<service>`. A step is marked done when you reach the end of the article, and the sidebar shows "N of 6".
-- Versions: pin exact versions to match the book's installed ones. New dependencies (MDX, vitest, Playwright, axe, astro check) are pinned at install time. Node comes from mise (Node 22).
+- Versions: pin exact versions (`save-exact` in `site/.npmrc`). The site runs Astro 7.3.5 with @astrojs/mdx 8.0.2 and @astrojs/sitemap 3.7.4. It was upgraded from the book's Astro 5.18.2 to clear `npm audit` advisories. Node must be 22.12 or newer (mise provides 22.23).
+  - Astro 7 renders Markdown and MDX with Sätteri, so remark/rehype plugins need `@astrojs/markdown-remark` and the `unified()` processor.
+  - The HTML compiler strips whitespace using JSX rules. Put a `{" "}` between inline elements that sit on separate lines.
+  - Content collection schemas import Zod 4 from `astro/zod`.
 
 ### Page plan (examples per page, taken from the docs)
 
