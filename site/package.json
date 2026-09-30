@@ -9,9 +9,11 @@
   "scripts": {
     "dev": "astro dev",
     "build": "astro build",
+    "postbuild": "pagefind --site dist",
     "preview": "astro preview",
     "check": "astro check",
-    "test": "vitest run"
+    "test": "vitest run",
+    "test:e2e": "npm run build && playwright test"
   },
   "dependencies": {
     "@astrojs/mdx": "8.0.2",
@@ -20,6 +22,8 @@
   },
   "devDependencies": {
     "@astrojs/check": "0.9.10",
+    "@playwright/test": "1.63.0",
+    "pagefind": "1.5.2",
     "typescript": "5.9.3",
     "vitest": "5.0.2"
   }

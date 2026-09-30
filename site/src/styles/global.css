@@ -75,7 +75,7 @@ body {
 .content { flex: 1 1 auto; min-width: 0; display: flex; justify-content: center; }
 .content-inner { width: 100%; max-width: var(--content-max); padding: 40px 32px 96px; }
 
-/* ---- Sidebar brand + nav ---- */
+/* ---- Sidebar: brand, menu button (mobile), nav ---- */
 .brand { display: block; text-align: center; text-decoration: none; padding: 6px 0; }
 .brand-logo { width: 180px; max-width: 80%; height: auto; display: block; margin: 0 auto; }
 .brand-sub { display: block; font-size: 14px; font-weight: 700; color: var(--ink);
@@ -85,14 +85,53 @@ body {
 .brand-author a { color: var(--muted); text-decoration: none; font-weight: 500; }
 .brand-author a:hover { color: var(--w-indigo); text-decoration: underline; }
 
-.sidebar nav ul { list-style: none; margin: 0; padding: 0; }
-.sidebar nav .part { font-size: 12px; font-weight: 700; text-transform: uppercase;
-  letter-spacing: .06em; color: var(--muted); margin: 18px 0 6px; }
+.menu-toggle { display: none; align-items: center; gap: 8px; padding: 8px 14px; cursor: pointer;
+  border: 1px solid var(--border); border-radius: 8px; background: var(--surface);
+  font: 700 14px/1 var(--font-sans); color: var(--ink-2); }
+.menu-toggle:hover { border-color: var(--w-violet); color: var(--w-violet); }
+.menu-icon { width: 16px; height: 2px; background: currentColor; border-radius: 1px;
+  box-shadow: 0 -5px 0 currentColor, 0 5px 0 currentColor; }
+
+.sidebar nav ul, .sidebar nav ol { list-style: none; margin: 0; padding: 0; }
 .sidebar nav a { display: block; padding: 6px 10px; border-radius: 7px;
   color: var(--ink-2); text-decoration: none; font-size: 14px; line-height: 1.4; }
 .sidebar nav a:hover { background: var(--tint); color: var(--w-violet); }
 .sidebar nav a[aria-current="page"] { background: var(--tint-strong);
   color: var(--w-violet); font-weight: 700; }
+
+/* Current journey: title, progress, numbered steps */
+.nav-journey { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border); }
+.sidebar nav .nav-journey-title { font-size: 15px; font-weight: 700; color: var(--ink); }
+.journey-progress { display: flex; align-items: center; gap: 8px; margin: 2px 10px 8px;
+  font-size: 12.5px; color: var(--muted); }
+.no-js .journey-progress { display: none; }
+.journey-progress progress { appearance: none; flex: 0 0 64px; height: 6px; border: 0;
+  border-radius: 999px; background: var(--border); overflow: hidden; }
+.journey-progress progress::-webkit-progress-bar { background: var(--border); border-radius: 999px; }
+.journey-progress progress::-webkit-progress-value { background: var(--w-teal); border-radius: 999px; }
+.journey-progress progress::-moz-progress-bar { background: var(--w-teal); border-radius: 999px; }
+
+.sidebar nav .nav-steps > li > a { display: flex; gap: 10px; align-items: flex-start; }
+.nav-step-marker { position: relative; flex: 0 0 20px; height: 20px; margin-top: 0;
+  border-radius: 50%; display: grid; place-items: center; font-size: 11px; font-weight: 700;
+  background: #eef0f4; color: var(--muted); }
+.nav-steps a[aria-current="page"] .nav-step-marker { background: var(--w-violet); color: #fff; }
+/* Done: the number becomes a tick (the "(done)" text is visually hidden).
+   More specific than the current-step rule, so a finished current step
+   shows the tick instead of the number drawn over it. */
+.nav-steps li.is-done > a .nav-step-marker { background: var(--w-teal); color: transparent; }
+.nav-steps li.is-done > a .nav-step-marker::after { content: "✓"; position: absolute; inset: 0;
+  display: grid; place-items: center; color: #fff; font-size: 12px; }
+
+/* Current step's sections (scroll-spy sets aria-current="true") */
+.sidebar nav .nav-sections { margin: 2px 0 8px 19px; padding-left: 12px;
+  border-left: 2px solid var(--border); }
+.sidebar nav .nav-sections a { padding: 3px 8px; font-size: 13px; color: var(--muted); font-weight: 400; }
+.sidebar nav .nav-sections a:hover { background: var(--tint); color: var(--w-violet); }
+.sidebar nav .nav-subsections { padding-left: 12px; }
+.sidebar nav .nav-subsections a { font-size: 12.5px; }
+.sidebar nav .nav-sections a[aria-current="true"] { color: var(--w-violet); font-weight: 600;
+  background: var(--tint); }
 
 /* ---- Prose (step pages, hub, 404) ---- */
 .prose h1 { font-size: 32px; line-height: 1.2; margin: 0 0 24px; }
@@ -153,9 +192,13 @@ body {
 .prose .step-list li::before { content: counter(step); position: absolute; left: 0; top: 12px;
   width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center;
   background: var(--tint-strong); color: var(--w-violet); font-weight: 800; font-size: 15px; }
+.prose .step-list li.is-done::before { content: "✓"; content: "✓" / ""; background: var(--w-teal); color: #fff; }
 .prose .step-list a { font-weight: 700; text-decoration: none; }
 .prose .step-list a:hover { text-decoration: underline; }
 .prose .step-list p { margin: 2px 0 0; font-size: 15px; color: var(--ink-3); }
+
+/* Marks the end of a step's content; reaching it marks the step done. */
+.read-sentinel { height: 1px; }
 
 /* Hub: one card per service journey */
 .prose ul.journey-cards { list-style: none; padding: 0; margin: 16px 0 0; display: grid; gap: 16px; }
@@ -172,7 +215,18 @@ body {
   /* flex: none — otherwise the desktop flex-basis (300px) becomes a fixed
      *height* once the layout stacks, leaving a gap under short sidebars. */
   .sidebar { flex: none; width: 100%; height: auto; position: static; border-right: 0;
-    border-bottom: 1px solid var(--border); padding-bottom: 20px; }
+    border-bottom: 1px solid var(--border); padding: 12px 18px; }
+  /* Compact top bar: logo on the left, Menu button on the right. */
+  .sidebar-bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .brand { text-align: left; padding: 0; }
+  .brand-logo { width: 130px; max-width: none; margin: 0; }
+  .brand-sub { font-size: 13px; margin-top: 2px; }
+  .brand-author { text-align: left; margin: 12px 0; }
+  /* With JS the panel (search + nav) collapses behind the Menu button;
+     without JS it stays open and the button stays hidden. */
+  .js .menu-toggle { display: inline-flex; }
+  .js .sidebar-panel:not(.is-open) { display: none; }
+  .sidebar-panel { padding-bottom: 8px; }
   .content-inner { padding: 24px 18px 72px; }
 }
 @media (max-width: 560px) {

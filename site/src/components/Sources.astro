@@ -10,7 +10,9 @@ interface Props {
 
 const { sources, lastVerified } = Astro.props;
 ---
-<section class="sources" aria-labelledby="sources-title">
+<!-- Kept out of the search index: every page cites similar AWS doc titles,
+     which would make search results match on citations instead of content. -->
+<section class="sources" aria-labelledby="sources-title" data-pagefind-ignore>
   <h2 id="sources-title">Sources</h2>
   <p class="sources-note">
     Checked against the official AWS documentation. Last verified <time datetime={isoDate(lastVerified)}>{formatDate(lastVerified)}</time>.

@@ -1,27 +1,108 @@
 ---
-// Sidebar — brand + navigation. Task 3 adds journey steps, the current
-// step's section outline (scroll-spy), search and progress.
+// Sidebar: brand, search and navigation. On journey pages it lists the
+// journey's steps with saved progress, and expands the current step's
+// sections (highlighted as you scroll). Below 860px it collapses behind a
+// Menu button; without JavaScript it simply stays open.
+import type { MarkdownHeading } from 'astro';
+import Search from './Search.astro';
 import { SECTION_NAME, AUTHOR, AUTHOR_URL } from '../data/site';
+import { getJourneys, type JourneyEntry } from '../lib/content';
+import { overviewPath, stepPath, stepSlug, type Journey } from '../lib/journey';
+import { buildOutline } from '../lib/outline';
 import { withBase } from '../lib/urls';
 
+interface Props {
+  /** The journey being read, if any. */
+  journey?: Journey<JourneyEntry>;
+  /** Current step slug, or null on the journey overview. */
+  currentSlug?: string | null;
+  /** Headings of the current page, for the section outline. */
+  headings?: MarkdownHeading[];
+}
+
+const { journey, currentSlug, headings = [] } = Astro.props;
+const journeys = await getJourneys();
 const hubPath = withBase();
 const isHub = Astro.url.pathname === hubPath;
+const outline = currentSlug ? buildOutline(headings) : [];
 ---
 <aside class="sidebar">
-  <a href={hubPath} class="brand">
-    <img
-      src={withBase('studytrails-logo.png')}
-      alt="StudyTrails"
-      class="brand-logo"
-      width="289"
-      height="71"
-    />
-    <span class="brand-sub">{SECTION_NAME}</span>
-  </a>
-  <div class="brand-author">by <a href={AUTHOR_URL} target="_blank" rel="noopener">{AUTHOR}</a></div>
-  <nav aria-label="Journeys">
-    <ul>
-      <li><a href={hubPath} aria-current={isHub ? 'page' : undefined}>All journeys</a></li>
-    </ul>
-  </nav>
+  <div class="sidebar-bar">
+    <a href={hubPath} class="brand">
+      <img
+        src={withBase('studytrails-logo.png')}
+        alt="StudyTrails"
+        class="brand-logo"
+        width="289"
+        height="71"
+      />
+      <span class="brand-sub">{SECTION_NAME}</span>
+    </a>
+    <button type="button" class="menu-toggle" aria-expanded="false" aria-controls="sidebar-panel" data-menu-toggle>
+      <span class="menu-icon" aria-hidden="true"></span>
+      <span>Menu</span>
+    </button>
+  </div>
+
+  <div class="sidebar-panel" id="sidebar-panel">
+    <div class="brand-author">by <a href={AUTHOR_URL} rel="noopener">{AUTHOR}</a></div>
+    <Search />
+    <nav aria-label="Journeys">
+      <ul class="nav-root">
+        <li><a href={hubPath} aria-current={isHub ? 'page' : undefined}>All journeys</a></li>
+        {journeys.map((j) =>
+          j.service.id !== journey?.service.id ? (
+            <li><a href={withBase(overviewPath(j.service.id))}>{j.service.name}</a></li>
+          ) : (
+            <li class="nav-journey" data-progress-journey={j.service.id}>
+              <a
+                class="nav-journey-title"
+                href={withBase(overviewPath(j.service.id))}
+                aria-current={currentSlug === null ? 'page' : undefined}
+              >{j.service.name}</a>
+              <div class="journey-progress">
+                <progress max={j.steps.length} value="0" aria-hidden="true"></progress>
+                <span data-progress-text>0 of {j.steps.length} steps done</span>
+              </div>
+              <ol class="nav-steps">
+                {j.steps.map((step, i) => {
+                  const slug = stepSlug(step);
+                  const isCurrent = slug === currentSlug;
+                  return (
+                    <li data-step={slug}>
+                      <a href={withBase(stepPath(j.service.id, slug))} aria-current={isCurrent ? 'page' : undefined}>
+                        <span class="nav-step-marker" aria-hidden="true">{i + 1}</span>
+                        <span class="nav-step-title">{step.data.navTitle}<span class="visually-hidden" data-done-label></span></span>
+                      </a>
+                      {isCurrent && outline.length > 0 && (
+                        <ul class="nav-sections">
+                          {outline.map((section) => (
+                            <li>
+                              <a href={`#${section.slug}`} data-nav-anchor={section.slug}>{section.text}</a>
+                              {section.children.length > 0 && (
+                                <ul class="nav-subsections">
+                                  {section.children.map((child) => (
+                                    <li><a href={`#${child.slug}`} data-nav-anchor={child.slug}>{child.text}</a></li>
+                                  ))}
+                                </ul>
+                              )}
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </li>
+                  );
+                })}
+              </ol>
+            </li>
+          ),
+        )}
+      </ul>
+    </nav>
+  </div>
 </aside>
+
+<script>
+  import '../scripts/sidebar';
+  import '../scripts/progress';
+</script>

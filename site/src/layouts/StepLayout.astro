@@ -1,10 +1,13 @@
 ---
 // Layout for every page inside a journey: the overview (slug = null) and
-// each step. Adds breadcrumbs, a "Step N of M" eyebrow, the page's sources
-// and prev/next links around the MDX content passed in the default slot.
+// each step. Adds the journey sidebar, breadcrumbs, a "Step N of M" eyebrow,
+// the page's sources and prev/next links around the MDX content passed in
+// the default slot. The article is what Pagefind indexes.
+import type { MarkdownHeading } from 'astro';
 import BaseLayout from './BaseLayout.astro';
 import Breadcrumbs, { type Crumb } from '../components/Breadcrumbs.astro';
 import PrevNext from '../components/PrevNext.astro';
+import Sidebar from '../components/Sidebar.astro';
 import Sources from '../components/Sources.astro';
 import { SECTION_NAME } from '../data/site';
 import type { JourneyEntry } from '../lib/content';
@@ -16,9 +19,11 @@ interface Props {
   entry: JourneyEntry;
   /** Step slug, or null for the journey overview. */
   slug: string | null;
+  /** The MDX page's headings, for the sidebar's section outline. */
+  headings?: MarkdownHeading[];
 }
 
-const { journey, entry, slug } = Astro.props;
+const { journey, entry, slug, headings = [] } = Astro.props;
 const { service, steps } = journey;
 const { title, navTitle, description, sources, lastVerified } = entry.data;
 
@@ -37,11 +42,16 @@ const eyebrow =
 const { prev, next } = neighbors(journey, slug);
 ---
 <BaseLayout title={title} description={description}>
+  <Sidebar slot="sidebar" journey={journey} currentSlug={slug} headings={headings} />
   <Breadcrumbs items={crumbs} />
-  <article class="prose">
+  <article class="prose" data-pagefind-body data-pagefind-filter={`Journey:${service.name}`}>
     <p class="eyebrow">{eyebrow}</p>
     <h1>{title}</h1>
     <slot />
+    {slug !== null && (
+      // Reaching this point marks the step done (src/scripts/progress.ts).
+      <div class="read-sentinel" data-read-sentinel data-service={service.id} data-step={slug} aria-hidden="true"></div>
+    )}
     <Sources sources={sources} lastVerified={lastVerified} />
   </article>
   <PrevNext prev={prev} next={next} nextKicker={slug === null ? 'Start the journey' : 'Next'} />

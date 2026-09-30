@@ -1,0 +1,48 @@
+---
+// Pagefind search box. The index is generated after the build
+// (`npm run build` runs `pagefind --site dist`) into dist/pagefind/, so
+// search only exists in built output; dev shows a note instead.
+import { withBase } from '../lib/urls';
+
+const isDev = import.meta.env.DEV;
+---
+<div class="search" role="search">
+  {isDev ? (
+    <p class="search-note">Search works in the built site: <code>npm run build</code>, then <code>npm run preview</code>.</p>
+  ) : (
+    <div id="site-search" data-pagefind-ui data-bundle={withBase('pagefind/')} data-base-url={withBase()}></div>
+  )}
+</div>
+{!isDev && <link rel="stylesheet" href={withBase('pagefind/pagefind-ui.css')} />}
+
+<script>
+  import '../scripts/search';
+</script>
+
+<style>
+  .search { margin: 0 0 16px; }
+  .search-note { margin: 0; font-size: 12.5px; line-height: 1.5; color: var(--muted); }
+  .search-note code { font-size: 12px; }
+  /* Fit Pagefind UI to the sidebar (ported from the book). The magnifying
+     glass is an absolutely positioned ::before on the form, so the input
+     needs left padding to clear it; Pagefind sets the right padding itself. */
+  .search :global(.pagefind-ui) {
+    --pagefind-ui-scale: 0.8;
+    --pagefind-ui-primary: var(--w-violet);
+    --pagefind-ui-text: var(--ink);
+    --pagefind-ui-border: var(--border);
+    --pagefind-ui-font: var(--font-sans);
+  }
+  .search :global(.pagefind-ui__search-input) {
+    font-size: 14px; padding-top: 8px; padding-bottom: 8px; padding-left: 34px;
+    border-radius: 8px; border: 1px solid var(--border); width: 100%; background: #fff;
+  }
+  .search :global(.pagefind-ui__search-clear) { font-size: 12px; }
+  /* Pagefind's stylesheet loads after ours with equally specific selectors,
+     so the overrides below include .pagefind-ui to win. */
+  /* Pagefind fades the placeholder to 20% opacity, too faint to read. */
+  .search :global(.pagefind-ui .pagefind-ui__search-input::placeholder) { opacity: 1; color: var(--muted); }
+  /* Only one journey exists so far, so the "Journey" filter adds nothing.
+     Remove this rule once a second service journey is published. */
+  .search :global(.pagefind-ui .pagefind-ui__filter-panel) { display: none; }
+</style>

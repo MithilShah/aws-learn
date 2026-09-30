@@ -16,17 +16,18 @@ export const getStaticPaths = (async () => {
 type Props = InferGetStaticPropsType<typeof getStaticPaths>;
 
 const { journey } = Astro.props as Props;
-const { Content } = await render(journey.overview);
+const { Content, headings } = await render(journey.overview);
 ---
-<StepLayout journey={journey} entry={journey.overview} slug={null}>
+<StepLayout journey={journey} entry={journey.overview} slug={null} headings={headings}>
   <Content />
   {journey.steps.length > 0 && (
     <section aria-labelledby="the-journey">
       <h2 id="the-journey">The journey</h2>
-      <ol class="step-list">
+      {/* Completed steps get a tick from src/scripts/progress.ts. */}
+      <ol class="step-list" data-progress-journey={journey.service.id}>
         {journey.steps.map((step) => (
-          <li>
-            <a href={withBase(stepPath(journey.service.id, stepSlug(step)))}>{step.data.navTitle}</a>
+          <li data-step={stepSlug(step)}>
+            <a href={withBase(stepPath(journey.service.id, stepSlug(step)))}>{step.data.navTitle}<span class="visually-hidden" data-done-label></span></a>
             <p>{step.data.summary}</p>
           </li>
         ))}

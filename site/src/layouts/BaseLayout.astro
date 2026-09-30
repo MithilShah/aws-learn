@@ -31,10 +31,13 @@ const jsonLdText = jsonLd ? JSON.stringify(jsonLd).replace(/</g, '\\u003c') : un
 ---
 
 <!doctype html>
-<html lang="en">
+<html lang="en" class="no-js">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <!-- Runs before first paint, so JS-only UI (collapsed mobile menu,
+         progress) never flashes. Without JS, .no-js keeps everything visible. -->
+    <script is:inline>document.documentElement.classList.replace('no-js', 'js');</script>
     <title>{fullTitle}</title>
     <meta name="description" content={description} />
     <meta name="author" content={AUTHOR} />
@@ -64,7 +67,8 @@ const jsonLdText = jsonLd ? JSON.stringify(jsonLd).replace(/</g, '\\u003c') : un
   <body>
     <a class="skip-link" href="#main">Skip to content</a>
     <div class="layout">
-      <Sidebar />
+      <!-- Journey pages pass their own <Sidebar slot="sidebar" journey=…>. -->
+      <slot name="sidebar"><Sidebar /></slot>
       <main id="main" class="content" tabindex="-1">
         <div class="content-inner">
           <slot />

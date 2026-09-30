@@ -19,8 +19,8 @@ export const getStaticPaths = (async () => {
 type Props = InferGetStaticPropsType<typeof getStaticPaths>;
 
 const { journey, entry } = Astro.props as Props;
-const { Content } = await render(entry);
+const { Content, headings } = await render(entry);
 ---
-<StepLayout journey={journey} entry={entry} slug={stepSlug(entry)}>
+<StepLayout journey={journey} entry={entry} slug={stepSlug(entry)} headings={headings}>
   <Content />
 </StepLayout>
