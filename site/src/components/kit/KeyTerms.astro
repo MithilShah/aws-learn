@@ -1,0 +1,18 @@
+---
+// A glossary of the terms a step introduces. Put a "## Key terms" heading
+// above it in the MDX so it shows in the sidebar outline.
+//   <KeyTerms>
+//     <Term name="Configuration item">A point-in-time view of…</Term>
+//   </KeyTerms>
+---
+<dl class="key-terms"><slot /></dl>
+
+<style>
+  .key-terms {
+    margin: 16px 0 24px;
+    padding: 0;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+</style>

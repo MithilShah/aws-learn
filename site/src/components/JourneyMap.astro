@@ -1,0 +1,123 @@
+---
+// The overview's journey map: every step on one trail, with its summary.
+// src/scripts/progress.ts adds ticks for finished steps, marks the next one
+// ("Up next"), and points the button at it. Without JavaScript it's a plain
+// ordered list with a "Start here" link.
+import type { JourneyEntry } from '../lib/content';
+import { stepPath, stepSlug, type Journey } from '../lib/journey';
+import { withBase } from '../lib/urls';
+
+interface Props {
+  journey: Journey<JourneyEntry>;
+}
+
+const { service, steps } = Astro.props.journey;
+const stops = steps.map((step, i) => ({
+  slug: stepSlug(step),
+  number: i + 1,
+  title: step.data.navTitle,
+  summary: step.data.summary,
+  href: withBase(stepPath(service.id, stepSlug(step))),
+}));
+const first = stops[0];
+---
+{first && (
+  <section class="journey-map" aria-labelledby="the-journey" data-progress-journey={service.id} data-progress-next>
+    <div class="journey-map-head">
+      <h2 id="the-journey">The journey</h2>
+      <p class="journey-map-status" data-progress-text>0 of {stops.length} steps done</p>
+    </div>
+
+    <a class="journey-continue" href={first.href} data-progress-continue>
+      <span class="journey-continue-kicker" data-continue-kicker>Start here</span>
+      <span class="journey-continue-label" data-continue-label>Step 1: {first.title}</span>
+    </a>
+
+    <ol class="journey-trail">
+      {stops.map((stop) => (
+        <li class="trail-stop" data-step={stop.slug} data-step-number={stop.number} data-step-title={stop.title} data-step-href={stop.href}>
+          <span class="trail-marker" aria-hidden="true">{stop.number}</span>
+          <div class="trail-body">
+            <a class="trail-link" href={stop.href}>{stop.title}<span class="visually-hidden" data-done-label></span></a>
+            <span class="trail-next" aria-hidden="true">Up next</span>
+            <p class="trail-summary">{stop.summary}</p>
+          </div>
+        </li>
+      ))}
+    </ol>
+  </section>
+)}
+
+<style>
+  .journey-map { margin-top: 40px; }
+  .journey-map-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 4px 16px; }
+  .journey-map-head h2 { margin: 0; padding: 0; }
+  .journey-map-status { margin: 0; font-size: 14px; font-weight: 600; color: var(--muted); }
+  :global(.no-js) .journey-map-status { display: none; }
+
+  .journey-continue {
+    display: inline-flex;
+    flex-direction: column;
+    gap: 2px;
+    margin: 18px 0 26px;
+    padding: 12px 20px;
+    border-radius: 12px;
+    background: var(--w-violet);
+    color: #fff;
+    text-decoration: none;
+  }
+  .journey-continue:hover { background: var(--w-indigo); color: #fff; }
+  .journey-continue-kicker { font-size: 12.5px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; }
+  .journey-continue-label { font-size: 17px; font-weight: 700; }
+
+  .journey-trail { list-style: none; margin: 0; padding: 0; }
+  .trail-stop { position: relative; display: grid; grid-template-columns: 36px 1fr; gap: 16px; padding-bottom: 22px; }
+  /* The trail: dashed between unfinished stops, solid once a stop is done. */
+  .trail-stop:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    left: 17px;
+    top: 40px;
+    bottom: 2px;
+    width: 2px;
+    background: repeating-linear-gradient(to bottom, #cbd5e1 0 6px, transparent 6px 11px);
+  }
+  .trail-stop:global(.is-done):not(:last-child)::after { background: var(--w-teal); }
+
+  .trail-marker {
+    position: relative;
+    z-index: 1;
+    width: 36px;
+    height: 36px;
+    display: grid;
+    place-items: center;
+    border: 2px solid #cbd5e1;
+    border-radius: 50%;
+    background: var(--surface);
+    color: var(--muted);
+    font-weight: 800;
+    font-size: 15px;
+  }
+  .trail-stop:global(.is-done) .trail-marker { border-color: var(--w-teal); background: var(--w-teal); color: transparent; }
+  .trail-stop:global(.is-done) .trail-marker::after { content: '✓'; position: absolute; inset: 0; display: grid; place-items: center; color: #fff; }
+  .trail-stop:global(.is-next) .trail-marker { border-color: var(--w-violet); color: var(--w-violet); box-shadow: 0 0 0 4px rgba(109, 40, 217, 0.15); }
+
+  .trail-body { padding-top: 5px; }
+  .trail-link { font-size: 17px; font-weight: 700; text-decoration: none; }
+  .trail-link:hover { text-decoration: underline; }
+  .trail-next {
+    display: none;
+    margin-left: 8px;
+    padding: 1px 8px;
+    border-radius: 999px;
+    background: var(--tint-strong);
+    color: var(--w-violet);
+    font-size: 11.5px;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    vertical-align: 0.15em;
+  }
+  .trail-stop:global(.is-next) .trail-next { display: inline-block; }
+  .trail-summary { margin: 2px 0 0; font-size: 15px; color: var(--ink-3); }
+</style>

@@ -29,6 +29,24 @@
   --tint-strong: rgba(109, 40, 217, 0.12);
   --focus: #4f46e5;
 
+  /* AWS Config evaluation results (CompliancePill). Text colours meet
+     WCAG AA on their backgrounds; the result name is always shown too. */
+  --c-compliant-fg: #166534; --c-compliant-bg: #dcfce7; --c-compliant-border: #86efac;
+  --c-noncompliant-fg: #991b1b; --c-noncompliant-bg: #fee2e2; --c-noncompliant-border: #fca5a5;
+  --c-error-fg: #92400e; --c-error-bg: #fef3c7; --c-error-border: #fcd34d;
+  --c-na-fg: #334155; --c-na-bg: #f1f5f9; --c-na-border: #cbd5e1;
+
+  /* Diagram tones (ServiceNode): light fill, strong outline, dark label. */
+  --tone-violet-fill: #ede9fe; --tone-violet-stroke: #6d28d9; --tone-violet-text: #4c1d95;
+  --tone-indigo-fill: #e0e7ff; --tone-indigo-stroke: #4f46e5; --tone-indigo-text: #312e81;
+  --tone-teal-fill: #ccfbf1; --tone-teal-stroke: #0d9488; --tone-teal-text: #134e4a;
+  --tone-orange-fill: #ffedd5; --tone-orange-stroke: #ea580c; --tone-orange-text: #7c2d12;
+  --tone-pink-fill: #fce7f3; --tone-pink-stroke: #db2777; --tone-pink-text: #831843;
+  --tone-amber-fill: #fef3c7; --tone-amber-stroke: #d97706; --tone-amber-text: #78350f;
+  --tone-slate-fill: #f1f5f9; --tone-slate-stroke: #64748b; --tone-slate-text: #1e293b;
+  --tone-green-fill: #dcfce7; --tone-green-stroke: #16a34a; --tone-green-text: #14532d;
+  --tone-red-fill: #fee2e2; --tone-red-stroke: #dc2626; --tone-red-text: #7f1d1d;
+
   /* layout */
   --content-max: 820px;
   --sidebar-w: 300px;
@@ -184,18 +202,6 @@ body {
 .pn-next .pn-kicker { justify-content: flex-end; }
 .pn-label { font-size: 16px; font-weight: 700; color: var(--w-indigo); line-height: 1.4; }
 .pn:hover .pn-label { color: var(--w-violet); }
-
-/* Overview: ordered list of steps */
-.prose ol.step-list { list-style: none; padding: 0; margin: 16px 0 0; counter-reset: step; }
-.prose .step-list li { counter-increment: step; position: relative; padding: 12px 0 12px 48px;
-  border-top: 1px solid var(--border); }
-.prose .step-list li::before { content: counter(step); position: absolute; left: 0; top: 12px;
-  width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center;
-  background: var(--tint-strong); color: var(--w-violet); font-weight: 800; font-size: 15px; }
-.prose .step-list li.is-done::before { content: "✓"; content: "✓" / ""; background: var(--w-teal); color: #fff; }
-.prose .step-list a { font-weight: 700; text-decoration: none; }
-.prose .step-list a:hover { text-decoration: underline; }
-.prose .step-list p { margin: 2px 0 0; font-size: 15px; color: var(--ink-3); }
 
 /* Marks the end of a step's content; reaching it marks the step done. */
 .read-sentinel { height: 1px; }

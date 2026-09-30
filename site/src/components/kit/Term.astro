@@ -1,0 +1,23 @@
+---
+// One entry in <KeyTerms>. Each term gets an id (#term-configuration-item)
+// so other pages can link straight to its definition.
+import { slugify } from '../../lib/ids';
+
+interface Props {
+  name: string;
+}
+
+const { name } = Astro.props;
+---
+<div class="key-term">
+  <dt id={`term-${slugify(name)}`}>{name}</dt>
+  <dd><slot /></dd>
+</div>
+
+<style>
+  .key-term { padding: 12px 16px; }
+  .key-term + .key-term { border-top: 1px solid var(--border); }
+  dt { font-weight: 700; color: var(--ink); }
+  dd { margin: 2px 0 0; color: var(--ink-3); font-size: 15.5px; }
+  dd :global(> p) { margin: 0; font-size: inherit; }
+</style>

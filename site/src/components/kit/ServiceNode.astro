@@ -1,0 +1,50 @@
+---
+// A labelled box in a <Diagram>: a service, a resource or a step. Colour
+// comes from `tone`; the label is always text, never colour alone.
+//   <ServiceNode x={20} y={40} label="AWS Config" sublabel="Recorder" tone="violet" stage="2" />
+export type Tone = 'violet' | 'indigo' | 'teal' | 'orange' | 'pink' | 'amber' | 'slate' | 'green' | 'red';
+
+interface Props {
+  x: number;
+  y: number;
+  width?: number;
+  height?: number;
+  label: string;
+  sublabel?: string;
+  tone?: Tone;
+  /** Stepper stages that light this node, e.g. "2" or "2 3". */
+  stage?: string;
+  /** Light this node from this stage on. */
+  stageFrom?: number;
+}
+
+const { x, y, width = 160, height = 56, label, sublabel, tone = 'violet', stage, stageFrom } = Astro.props;
+const cx = x + width / 2;
+const cy = y + height / 2;
+---
+<g class:list={['svc-node', `tone-${tone}`]} data-stage={stage} data-stage-from={stageFrom}>
+  <rect x={x} y={y} width={width} height={height} rx="10" />
+  {sublabel ? (
+    <>
+      <text class="svc-label" x={cx} y={cy - 8} text-anchor="middle" dominant-baseline="central">{label}</text>
+      <text class="svc-sublabel" x={cx} y={cy + 11} text-anchor="middle" dominant-baseline="central">{sublabel}</text>
+    </>
+  ) : (
+    <text class="svc-label" x={cx} y={cy} text-anchor="middle" dominant-baseline="central">{label}</text>
+  )}
+</g>
+
+<style>
+  .svc-node rect { fill: var(--tone-fill); stroke: var(--tone-stroke); stroke-width: 2; }
+  .svc-label { fill: var(--tone-text); font-size: 15px; font-weight: 700; }
+  .svc-sublabel { fill: var(--tone-text); font-size: 12.5px; font-weight: 500; }
+  .tone-violet { --tone-fill: var(--tone-violet-fill); --tone-stroke: var(--tone-violet-stroke); --tone-text: var(--tone-violet-text); }
+  .tone-indigo { --tone-fill: var(--tone-indigo-fill); --tone-stroke: var(--tone-indigo-stroke); --tone-text: var(--tone-indigo-text); }
+  .tone-teal { --tone-fill: var(--tone-teal-fill); --tone-stroke: var(--tone-teal-stroke); --tone-text: var(--tone-teal-text); }
+  .tone-orange { --tone-fill: var(--tone-orange-fill); --tone-stroke: var(--tone-orange-stroke); --tone-text: var(--tone-orange-text); }
+  .tone-pink { --tone-fill: var(--tone-pink-fill); --tone-stroke: var(--tone-pink-stroke); --tone-text: var(--tone-pink-text); }
+  .tone-amber { --tone-fill: var(--tone-amber-fill); --tone-stroke: var(--tone-amber-stroke); --tone-text: var(--tone-amber-text); }
+  .tone-slate { --tone-fill: var(--tone-slate-fill); --tone-stroke: var(--tone-slate-stroke); --tone-text: var(--tone-slate-text); }
+  .tone-green { --tone-fill: var(--tone-green-fill); --tone-stroke: var(--tone-green-stroke); --tone-text: var(--tone-green-text); }
+  .tone-red { --tone-fill: var(--tone-red-fill); --tone-stroke: var(--tone-red-stroke); --tone-text: var(--tone-red-text); }
+</style>

@@ -99,7 +99,7 @@ test.describe('progress', () => {
 
     await page.goto(OVERVIEW);
     await expect(progressText(page)).toHaveText('2 of 6 steps done');
-    const list = page.locator('.step-list');
+    const list = page.locator('.journey-trail');
     await expect(list.locator('[data-step="what-is-aws-config"]')).toHaveClass(/is-done/);
     await expect(list.locator('[data-step="config-rules"]')).toHaveClass(/is-done/);
     await expect(list.locator('[data-step="how-it-works"]')).not.toHaveClass(/is-done/);

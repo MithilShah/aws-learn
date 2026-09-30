@@ -1,0 +1,44 @@
+---
+// An AWS Config evaluation result as a badge. Always shows the result's name
+// as text (plus an icon), so it never relies on colour alone. The four
+// results come from the AWS Config documentation.
+//   <CompliancePill status="NON_COMPLIANT" />
+export type EvaluationResult = 'COMPLIANT' | 'NON_COMPLIANT' | 'ERROR' | 'NOT_APPLICABLE';
+
+interface Props {
+  status: EvaluationResult;
+}
+
+const ICONS: Record<EvaluationResult, string> = {
+  COMPLIANT: '✓',
+  NON_COMPLIANT: '✕',
+  ERROR: '!',
+  NOT_APPLICABLE: '–',
+};
+
+const { status } = Astro.props;
+---
+<span class:list={['pill', `pill-${status.toLowerCase().replace(/_/g, '-')}`]}>
+  <span class="pill-icon" aria-hidden="true">{ICONS[status]}</span>{status}
+</span>
+
+<style>
+  .pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 1px 9px 1px 6px;
+    border: 1px solid var(--pill-border);
+    border-radius: 999px;
+    background: var(--pill-bg);
+    color: var(--pill-fg);
+    font: 700 12.5px/1.6 var(--font-mono);
+    white-space: nowrap;
+    vertical-align: 0.1em;
+  }
+  .pill-icon { font-family: var(--font-sans); font-size: 12px; }
+  .pill-compliant { --pill-fg: var(--c-compliant-fg); --pill-bg: var(--c-compliant-bg); --pill-border: var(--c-compliant-border); }
+  .pill-non-compliant { --pill-fg: var(--c-noncompliant-fg); --pill-bg: var(--c-noncompliant-bg); --pill-border: var(--c-noncompliant-border); }
+  .pill-error { --pill-fg: var(--c-error-fg); --pill-bg: var(--c-error-bg); --pill-border: var(--c-error-border); }
+  .pill-not-applicable { --pill-fg: var(--c-na-fg); --pill-bg: var(--c-na-bg); --pill-border: var(--c-na-border); }
+</style>

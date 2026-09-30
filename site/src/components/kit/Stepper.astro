@@ -1,0 +1,98 @@
+---
+// Walks a diagram through numbered stages. Without JavaScript the diagram
+// is shown in full with every stage listed below it. With JavaScript
+// (src/scripts/stepper.ts), Back/Next buttons show one stage at a time,
+// highlight the diagram parts marked for that stage, and announce each
+// stage to screen readers. Nothing moves on its own.
+//
+// Mark diagram parts with data-stage="2" (lit at stage 2), data-stage="2 3",
+// or data-stage-from="3" (lit from stage 3 on). ServiceNode and Arrow take
+// `stage` / `stageFrom` props for this.
+//   <Stepper label="How a change is recorded" stages={[{ title: '…', text: '…' }, …]}>
+//     <Diagram …>…</Diagram>
+//   </Stepper>
+import { makeId } from '../../lib/ids';
+
+interface Stage {
+  title: string;
+  text: string;
+}
+
+interface Props {
+  /** Name of the walkthrough, e.g. 'How a change is recorded'. */
+  label: string;
+  stages: Stage[];
+}
+
+const { label, stages } = Astro.props;
+const id = makeId('stepper', label);
+---
+<div class="stepper" data-stepper id={id} role="group" aria-labelledby={`${id}-label`}>
+  <p class="stepper-label" id={`${id}-label`}>{label}</p>
+  <div class="stepper-visual" data-stepper-visual><slot /></div>
+  <ol class="stepper-stages">
+    {stages.map((stage, i) => (
+      <li class="stepper-stage" data-stage-index={i + 1}>
+        <span class="stepper-stage-title">{stage.title}</span>{' '}<span class="stepper-stage-text">{stage.text}</span>
+      </li>
+    ))}
+  </ol>
+  <div class="stepper-controls" data-stepper-controls hidden>
+    <button type="button" class="stepper-btn" data-stepper-prev><span aria-hidden="true">←</span> Back</button>
+    <span class="stepper-count" data-stepper-count aria-hidden="true"></span>
+    <button type="button" class="stepper-btn" data-stepper-next>Next <span aria-hidden="true">→</span></button>
+  </div>
+  <p class="visually-hidden" aria-live="polite" data-stepper-live></p>
+</div>
+
+<script>
+  import '../../scripts/stepper';
+</script>
+
+<style>
+  .stepper { width: 100%; }
+  .stepper-label {
+    margin: 0 0 10px;
+    font-size: 13px;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--w-violet);
+  }
+  .stepper-visual { display: flex; justify-content: center; }
+  .stepper-stages { margin: 14px 0 0; padding-left: 22px; }
+  .stepper-stage { font-size: 15.5px; margin: 6px 0; }
+  .stepper-stage-title { font-weight: 700; color: var(--ink); }
+
+  /* Enhanced: one stage at a time, shown as a caption with its number. */
+  .stepper:global(.is-enhanced) .stepper-stages { list-style: none; padding: 0; min-height: 3.2em; }
+  .stepper-stage[hidden] { display: none; }
+
+  .stepper-controls { display: flex; align-items: center; justify-content: center; gap: 14px; margin-top: 12px; }
+  .stepper-controls[hidden] { display: none; }
+  .stepper-count { min-width: 8.5em; text-align: center; font-size: 14px; font-weight: 600; color: var(--muted); }
+  .stepper-btn {
+    padding: 8px 16px;
+    border: 1px solid var(--w-violet);
+    border-radius: 8px;
+    background: var(--w-violet);
+    color: #fff;
+    font: 700 14px/1 var(--font-sans);
+    cursor: pointer;
+  }
+  .stepper-btn:hover { background: var(--w-indigo); border-color: var(--w-indigo); }
+  .stepper-btn[aria-disabled='true'] {
+    background: var(--surface);
+    border-color: var(--border);
+    color: var(--muted);
+    cursor: default;
+  }
+
+  /* Diagram parts not in the current stage fade back. */
+  .stepper:global(.is-enhanced) :global([data-stage]:not(.is-lit)),
+  .stepper:global(.is-enhanced) :global([data-stage-from]:not(.is-lit)) { opacity: 0.2; }
+  @media (prefers-reduced-motion: no-preference) {
+    .stepper :global([data-stage]),
+    .stepper :global([data-stage-from]) { transition: opacity 0.35s ease; }
+  }
+</style>

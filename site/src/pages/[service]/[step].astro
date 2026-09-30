@@ -2,6 +2,7 @@
 // /aws/<service>/<step>/ — one step of a journey (journeys/<service>/<step>.mdx).
 import type { GetStaticPaths, InferGetStaticPropsType } from 'astro';
 import { render } from 'astro:content';
+import { mdxComponents } from '../../components/kit';
 import StepLayout from '../../layouts/StepLayout.astro';
 import { getJourneys } from '../../lib/content';
 import { stepSlug } from '../../lib/journey';
@@ -22,5 +23,5 @@ const { journey, entry } = Astro.props as Props;
 const { Content, headings } = await render(entry);
 ---
 <StepLayout journey={journey} entry={entry} slug={stepSlug(entry)} headings={headings}>
-  <Content />
+  <Content components={mdxComponents} />
 </StepLayout>

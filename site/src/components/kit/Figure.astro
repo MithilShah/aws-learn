@@ -1,0 +1,54 @@
+---
+// Wraps a diagram or visual with a visible caption and a text description.
+// The description is in the HTML (inside a <details>), so search engines and
+// screen readers get the same information as the picture.
+//   <Figure caption="How a change is recorded" description="A security group…">
+//     <Diagram …>…</Diagram>
+//   </Figure>
+import { makeId } from '../../lib/ids';
+
+interface Props {
+  caption: string;
+  /** Plain-text description of everything the visual shows. */
+  description: string;
+}
+
+const { caption, description } = Astro.props;
+const id = makeId('fig', caption);
+---
+<figure class="figure" id={id} aria-describedby={`${id}-desc`}>
+  <div class="figure-body"><slot /></div>
+  <figcaption class="figure-caption">{caption}</figcaption>
+  <details class="figure-desc">
+    <summary>Text description</summary>
+    <p id={`${id}-desc`}>{description}</p>
+  </details>
+</figure>
+
+<style>
+  .figure {
+    margin: 28px 0;
+    padding: 18px;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    background: var(--surface);
+  }
+  .figure-body { display: flex; justify-content: center; }
+  .figure-caption {
+    margin-top: 12px;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--ink);
+    text-align: center;
+  }
+  .figure-desc { margin-top: 8px; font-size: 14.5px; color: var(--ink-3); }
+  .figure-desc summary {
+    cursor: pointer;
+    width: fit-content;
+    margin: 0 auto;
+    font-size: 13.5px;
+    font-weight: 600;
+    color: var(--w-indigo);
+  }
+  .figure-desc p { margin: 8px 0 0; font-size: 14.5px; }
+</style>

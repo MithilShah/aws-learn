@@ -5,6 +5,7 @@ import {
   isDone,
   markDone,
   mergeProgress,
+  nextStep,
   parseProgress,
   readProgress,
   saveStep,
@@ -85,6 +86,20 @@ describe('markDone / isDone', () => {
 describe('mergeProgress', () => {
   it('is the union of both, without duplicates', () => {
     expect(mergeProgress({ done: ['a', 'b'] }, { done: ['b', 'c'] })).toEqual({ done: ['a', 'b', 'c'] });
+  });
+});
+
+describe('nextStep', () => {
+  const steps = ['what-is-aws-config', 'how-it-works', 'config-rules'];
+
+  it('is the first unfinished step in journey order, not completion order', () => {
+    expect(nextStep(EMPTY, steps)).toBe('what-is-aws-config');
+    expect(nextStep({ done: ['how-it-works'] }, steps)).toBe('what-is-aws-config');
+    expect(nextStep({ done: ['what-is-aws-config', 'how-it-works'] }, steps)).toBe('config-rules');
+  });
+
+  it('is null once every step is done', () => {
+    expect(nextStep({ done: [...steps].reverse() }, steps)).toBeNull();
   });
 });
 

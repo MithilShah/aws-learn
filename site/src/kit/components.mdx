@@ -1,0 +1,73 @@
+This page shows every component that journey pages can use, as they appear in MDX. It's
+built only in development and for the browser tests, never for the live site.
+
+## Callouts
+
+<Callout type="tip">
+Use a tip for a helpful shortcut or a way to remember something.
+</Callout>
+
+<Callout type="note">
+Use a note for context that's useful but not essential.
+</Callout>
+
+<Callout type="misconception">
+AWS Config rules don't prevent changes. They evaluate a resource's configuration after the change
+has been recorded.
+</Callout>
+
+## Evaluation results
+
+A rule's result is one of <CompliancePill status="COMPLIANT" />, <CompliancePill status="NON_COMPLIANT" />,
+<CompliancePill status="ERROR" /> or <CompliancePill status="NOT_APPLICABLE" />.
+
+## Key terms
+
+<KeyTerms>
+  <Term name="Configuration item">A point-in-time view of the attributes of a supported AWS resource.</Term>
+  <Term name="Configuration recorder">Stores the configuration changes to the resource types in scope as configuration items.</Term>
+</KeyTerms>
+
+## Tabs
+
+<Tabs label="Example tabs">
+  <TabPanel label="First panel">
+
+  The first panel. Without JavaScript, every panel shows one after another under its own heading.
+
+  </TabPanel>
+  <TabPanel label="Second panel">
+
+  The second panel.
+
+  </TabPanel>
+  <TabPanel label="Third panel">
+
+  The third panel.
+
+  </TabPanel>
+</Tabs>
+
+## Stepper and diagram
+
+<Figure
+  caption="Example walkthrough: a change moves through three services"
+  description="Three boxes in a row, joined by arrows. A resource changes; AWS Config records the change; Amazon S3 stores the record. Each stage highlights the part it describes."
+>
+  <Stepper
+    label="Example walkthrough"
+    stages={[
+      { title: 'A resource changes.', text: 'Someone edits a security group rule.' },
+      { title: 'AWS Config records it.', text: 'The recorder captures the new configuration.' },
+      { title: 'The record is delivered.', text: 'The configuration history ends up in an S3 bucket.' },
+    ]}
+  >
+    <Diagram width={640} height={140} label="A resource, then AWS Config, then Amazon S3, joined by arrows">
+      <ServiceNode x={16} y={42} label="Resource" sublabel="Security group" tone="orange" stage="1" />
+      <Arrow from={[176, 70]} to={[240, 70]} label="change" stage="2" />
+      <ServiceNode x={240} y={42} label="AWS Config" sublabel="Recorder" tone="violet" stage="2" />
+      <Arrow from={[400, 70]} to={[464, 70]} label="deliver" stageFrom={3} dashed />
+      <ServiceNode x={464} y={42} label="Amazon S3" sublabel="History" tone="green" stageFrom={3} />
+    </Diagram>
+  </Stepper>
+</Figure>

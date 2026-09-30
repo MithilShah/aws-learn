@@ -1,0 +1,23 @@
+---
+// /aws/kit/components/ — a gallery of the MDX component kit, used while
+// writing journeys and by the browser tests. Built only in dev and when
+// BUILD_KIT=1 (npm run test:e2e), never in a normal `npm run build`.
+// It's noindex and excluded from the sitemap either way.
+import type { GetStaticPaths } from 'astro';
+import { mdxComponents } from '../../components/kit';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Kit from '../../kit/components.mdx';
+
+export const getStaticPaths = (() =>
+  import.meta.env.DEV || process.env.BUILD_KIT === '1' ? [{ params: { page: 'components' } }] : []) satisfies GetStaticPaths;
+---
+<BaseLayout
+  title="Component kit"
+  description="Every component available to journey pages: callouts, key terms, tabs, steppers, diagrams and evaluation results."
+  noindex
+>
+  <article class="prose">
+    <h1>Component kit</h1>
+    <Kit components={mdxComponents} />
+  </article>
+</BaseLayout>

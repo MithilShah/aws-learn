@@ -15,5 +15,9 @@ export default defineConfig({
     // Emit /config/how-it-works/index.html so URLs are clean directories.
     format: 'directory',
   },
-  integrations: [mdx(), sitemap()],
+  integrations: [
+    mdx(),
+    // The component kit (/aws/kit/…) is a dev and test page, never listed.
+    sitemap({ filter: (page) => !page.includes('/aws/kit/') }),
+  ],
 });

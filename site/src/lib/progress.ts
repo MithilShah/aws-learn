@@ -61,6 +61,11 @@ export function mergeProgress(a: Progress, b: Progress): Progress {
   return { done: unique([...a.done, ...b.done]) };
 }
 
+/** The first step (in journey order) that isn't done yet, or null when all are. */
+export function nextStep(progress: Progress, stepSlugs: readonly string[]): string | null {
+  return stepSlugs.find((slug) => !isDone(progress, slug)) ?? null;
+}
+
 /**
  * How many of a journey's current steps are done. Slugs of steps that no
  * longer exist are ignored, so renaming a step can't push the count past 100%.

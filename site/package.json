@@ -14,8 +14,8 @@
     "check": "astro check",
     "test": "vitest run",
     "test:dist": "vitest run --config vitest.dist.config.ts",
-    "test:e2e": "npm run build && playwright test",
-    "verify": "npm test && npm run check && npm run test:e2e && npm run test:dist"
+    "test:e2e": "BUILD_KIT=1 npm run build && playwright test",
+    "verify": "npm test && npm run check && npm run test:e2e && npm run build && npm run test:dist"
   },
   "dependencies": {
     "@astrojs/mdx": "8.0.2",

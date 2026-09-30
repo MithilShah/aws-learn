@@ -1,0 +1,52 @@
+---
+// An SVG canvas for ServiceNode and Arrow. It scales to the column width
+// and is announced as one image; put the details in the surrounding
+// <Figure description="…">.
+//
+// It never shrinks below `minScale` of its size, so labels stay readable
+// on phones. Narrower than that, it scrolls sideways; src/scripts/diagram.ts
+// makes the frame keyboard-focusable only while it actually scrolls.
+//   <Diagram width={640} height={200} label="AWS Config sends data to S3 and SNS">…</Diagram>
+interface Props {
+  width: number;
+  height: number;
+  /** Short accessible name for the whole picture. */
+  label: string;
+  /** Smallest scale to draw at (0.72 keeps 15px labels at about 11px). */
+  minScale?: number;
+}
+
+const { width, height, label, minScale = 0.72 } = Astro.props;
+---
+<div class="diagram-frame" data-diagram-frame data-label={label}>
+  <svg
+    class="diagram"
+    viewBox={`0 0 ${width} ${height}`}
+    role="img"
+    aria-label={label}
+    style={`max-width: ${width}px; min-width: ${Math.round(width * minScale)}px`}
+    xmlns="http://www.w3.org/2000/svg"
+  ><slot /></svg>
+</div>
+
+<script>
+  import '../../scripts/diagram';
+</script>
+
+<style>
+  .diagram-frame {
+    width: 100%;
+    overflow-x: auto;
+    display: flex;
+    justify-content: center;
+  }
+  /* When it scrolls, start at the left edge so nothing is cut off. */
+  .diagram-frame[data-scrolls] { justify-content: flex-start; }
+  .diagram {
+    display: block;
+    width: 100%;
+    height: auto;
+    flex: 0 0 auto;
+    font-family: var(--font-sans);
+  }
+</style>

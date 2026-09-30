@@ -1,12 +1,12 @@
 ---
 // /aws/<service>/ — a journey's overview: its intro (index.mdx) and the
-// ordered list of steps.
+// journey map of its steps.
 import type { GetStaticPaths, InferGetStaticPropsType } from 'astro';
 import { render } from 'astro:content';
+import JourneyMap from '../../components/JourneyMap.astro';
+import { mdxComponents } from '../../components/kit';
 import StepLayout from '../../layouts/StepLayout.astro';
 import { getJourneys } from '../../lib/content';
-import { stepPath, stepSlug } from '../../lib/journey';
-import { withBase } from '../../lib/urls';
 
 export const getStaticPaths = (async () => {
   const journeys = await getJourneys();
@@ -19,19 +19,6 @@ const { journey } = Astro.props as Props;
 const { Content, headings } = await render(journey.overview);
 ---
 <StepLayout journey={journey} entry={journey.overview} slug={null} headings={headings}>
-  <Content />
-  {journey.steps.length > 0 && (
-    <section aria-labelledby="the-journey">
-      <h2 id="the-journey">The journey</h2>
-      {/* Completed steps get a tick from src/scripts/progress.ts. */}
-      <ol class="step-list" data-progress-journey={journey.service.id}>
-        {journey.steps.map((step) => (
-          <li data-step={stepSlug(step)}>
-            <a href={withBase(stepPath(journey.service.id, stepSlug(step)))}>{step.data.navTitle}<span class="visually-hidden" data-done-label></span></a>
-            <p>{step.data.summary}</p>
-          </li>
-        ))}
-      </ol>
-    </section>
-  )}
+  <Content components={mdxComponents} />
+  <JourneyMap journey={journey} />
 </StepLayout>

@@ -1,0 +1,47 @@
+---
+// A highlighted aside in the text: a tip, a note, or a common misconception.
+//   <Callout type="misconception">Rules don't block changes…</Callout>
+export type CalloutType = 'tip' | 'note' | 'misconception';
+
+interface Props {
+  type?: CalloutType;
+  /** Overrides the default label ('Tip', 'Note', 'Common misconception'). */
+  title?: string;
+}
+
+const LABELS: Record<CalloutType, string> = {
+  tip: 'Tip',
+  note: 'Note',
+  misconception: 'Common misconception',
+};
+
+const { type = 'note', title } = Astro.props;
+---
+<div class:list={['callout', `callout-${type}`]} role="note">
+  <p class="callout-label">{title ?? LABELS[type]}</p>
+  <div class="callout-body"><slot /></div>
+</div>
+
+<style>
+  .callout {
+    --callout-accent: var(--w-indigo);
+    --callout-bg: #eef2ff;
+    margin: 24px 0;
+    padding: 14px 18px;
+    border-left: 4px solid var(--callout-accent);
+    border-radius: 0 10px 10px 0;
+    background: var(--callout-bg);
+  }
+  .callout-tip { --callout-accent: var(--w-teal); --callout-bg: #f0fdfa; }
+  .callout-misconception { --callout-accent: var(--w-orange); --callout-bg: #fff7ed; }
+  .callout-label {
+    margin: 0 0 4px;
+    font-size: 13px;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--ink);
+  }
+  .callout-body :global(> :first-child) { margin-top: 0; }
+  .callout-body :global(> :last-child) { margin-bottom: 0; }
+</style>

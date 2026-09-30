@@ -1,0 +1,26 @@
+---
+// One panel inside <Tabs>. Its heading is visible without JavaScript and is
+// hidden once the panels become tabs (the tab itself shows the label).
+interface Props {
+  label: string;
+  /** Heading level used when the panels are shown one after another. */
+  level?: 3 | 4;
+}
+
+const { label, level = 3 } = Astro.props;
+const Heading = `h${level}` as 'h3' | 'h4';
+---
+<section class="tab-panel" data-tab-panel data-tab-label={label}>
+  <Heading class="tab-panel-title">{label}</Heading>
+  <slot />
+</section>
+
+<style>
+  .tab-panel { padding: 4px 0 8px; }
+  .tab-panel + .tab-panel { border-top: 1px solid var(--border); }
+  .tab-panel-title { margin: 14px 0 6px; }
+  /* Once enhanced, panels are tabs: the tab shows the label. */
+  :global(.tabs.is-enhanced) .tab-panel { padding-top: 12px; border-top: 0; }
+  :global(.tabs.is-enhanced) .tab-panel-title { display: none; }
+  .tab-panel :global(> :last-child) { margin-bottom: 0; }
+</style>
