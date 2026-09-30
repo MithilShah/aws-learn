@@ -1,4 +1,5 @@
-import { expect, test, type Page } from '@playwright/test';
+import type { Page } from '@playwright/test';
+import { expect, test } from './fixtures';
 
 const OVERVIEW = '/aws/config/';
 const STEPS = [
@@ -16,19 +17,6 @@ const at = (path: string) => new RegExp(`^http://localhost:\\d+${path.replace(/[
 const sidebar = (page: Page) => page.locator('aside.sidebar');
 const progressText = (page: Page) => sidebar(page).locator('[data-progress-text]');
 const sidebarStep = (page: Page, slug: string) => sidebar(page).locator(`[data-step="${slug}"]`);
-
-// Every test fails on a JavaScript error or console error in the page.
-let errors: string[];
-test.beforeEach(({ page }) => {
-  errors = [];
-  page.on('pageerror', (err) => errors.push(`pageerror: ${err.message}`));
-  page.on('console', (msg) => {
-    if (msg.type() === 'error') errors.push(`console: ${msg.text()}`);
-  });
-});
-test.afterEach(() => {
-  expect(errors).toEqual([]);
-});
 
 test.describe('navigation', () => {
   test('hub → overview → every step with Next, then back with Previous', async ({ page }) => {
@@ -198,5 +186,20 @@ test.describe('without JavaScript', () => {
     await expect(page.locator('#sidebar-panel').getByRole('link', { name: 'Config rules' })).toBeVisible();
     await expect(sidebar(page).locator('.journey-progress')).toBeHidden();
     await expect(page.getByRole('heading', { level: 1 })).toHaveText('How AWS Config Works');
+  });
+});
+
+test.describe('analytics', () => {
+  test('GoatCounter is loaded once per page (stubbed in tests)', async ({ page }) => {
+    const requests: string[] = [];
+    page.on('request', (req) => {
+      if (req.url().startsWith('https://gc.zgo.at/')) requests.push(req.url());
+    });
+    await page.goto(stepUrl('how-it-works'));
+    await expect(page.locator('script[data-goatcounter]')).toHaveAttribute(
+      'data-goatcounter',
+      'https://studytrails.goatcounter.com/count',
+    );
+    await expect.poll(() => requests).toEqual(['https://gc.zgo.at/count.js']);
   });
 });

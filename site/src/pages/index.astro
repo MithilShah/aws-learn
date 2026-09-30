@@ -2,16 +2,16 @@
 // /aws/ — hub page listing every service journey. Task 11 writes the
 // final copy.
 import BaseLayout from '../layouts/BaseLayout.astro';
-import { SECTION_NAME } from '../data/site';
+import { HUB_DESCRIPTION, HUB_TITLE, SECTION_NAME } from '../data/site';
 import { getJourneys } from '../lib/content';
 import { overviewPath } from '../lib/journey';
-import { withBase } from '../lib/urls';
+import { itemList } from '../lib/seo';
+import { absUrl, withBase } from '../lib/urls';
 
 const journeys = await getJourneys();
-const description =
-  'Free, beginner-friendly learning journeys for AWS services, with interactive diagrams and every fact checked against the official AWS documentation.';
+const jsonLd = [itemList(journeys.map(({ overview, service }) => ({ name: overview.data.title, url: absUrl(overviewPath(service.id)) })))];
 ---
-<BaseLayout title={`${SECTION_NAME} for Beginners`} description={description} ogType="website">
+<BaseLayout title={HUB_TITLE} description={HUB_DESCRIPTION} ogType="website" jsonLd={jsonLd}>
   <article class="prose">
     <h1>{SECTION_NAME}</h1>
     <p class="lede">

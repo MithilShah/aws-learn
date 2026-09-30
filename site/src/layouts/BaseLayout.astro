@@ -1,11 +1,11 @@
 ---
-// BaseLayout — page shell plus the server-rendered <head>, so crawlers see
-// every SEO tag without running JS. All URLs come from src/lib/urls.ts or
-// Astro.site/Astro.url, never a hardcoded '/aws'. Task 4 extends the head
-// (share images, GoatCounter, fuller JSON-LD).
+// BaseLayout — page shell plus the server-rendered <head>, so crawlers and
+// share previews see every tag without running JS. All URLs come from
+// src/lib/urls.ts or Astro.site/Astro.url, never a hardcoded '/aws'.
 import Sidebar from '../components/Sidebar.astro';
-import { SITE_NAME, AUTHOR } from '../data/site';
-import { withBase } from '../lib/urls';
+import { SITE_NAME, AUTHOR, GOATCOUNTER_CODE, HUB_TITLE } from '../data/site';
+import { SHARE_IMAGE, shareImagePath, type JsonLd } from '../lib/seo';
+import { absUrl, withBase } from '../lib/urls';
 import '../styles/global.css';
 
 export interface Props {
@@ -13,21 +13,31 @@ export interface Props {
   title: string;
   description: string;
   ogType?: 'website' | 'article';
-  /** Absolute URL of the share image. */
+  /** Absolute URL of the 1200×630 share image. Defaults to the hub's card. */
   ogImage?: string;
-  /** One JSON-LD object or several. */
-  jsonLd?: Record<string, unknown> | Record<string, unknown>[];
+  /** What the share image shows, for screen readers on social sites. */
+  ogImageAlt?: string;
+  /** Structured data; each object is emitted as its own JSON-LD script. */
+  jsonLd?: JsonLd[];
   /** Keep the page out of search results (e.g. 404). Also drops the canonical. */
   noindex?: boolean;
 }
 
-const { title, description, ogType = 'article', ogImage, jsonLd, noindex = false } = Astro.props;
+const {
+  title,
+  description,
+  ogType = 'article',
+  ogImage = absUrl(shareImagePath('')),
+  ogImageAlt = `${HUB_TITLE}, by ${AUTHOR}`,
+  jsonLd = [],
+  noindex = false,
+} = Astro.props;
 
 // Astro.url.pathname already includes the base ('/aws/config/').
 const canonical = new URL(Astro.url.pathname, Astro.site).href;
 const fullTitle = title === SITE_NAME ? title : `${title} · ${SITE_NAME}`;
 // Escape '<' so content can never close the <script> tag early.
-const jsonLdText = jsonLd ? JSON.stringify(jsonLd).replace(/</g, '\\u003c') : undefined;
+const jsonLdScripts = jsonLd.map((data) => JSON.stringify(data).replace(/</g, '\\u003c'));
 ---
 
 <!doctype html>
@@ -46,23 +56,37 @@ const jsonLdText = jsonLd ? JSON.stringify(jsonLd).replace(/</g, '\\u003c') : un
     <!-- Open Graph (LinkedIn / Slack / Facebook) -->
     <meta property="og:type" content={ogType} />
     <meta property="og:site_name" content={SITE_NAME} />
+    <meta property="og:locale" content="en_US" />
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
     {!noindex && <meta property="og:url" content={canonical} />}
-    {ogImage && <meta property="og:image" content={ogImage} />}
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:image:type" content="image/png" />
+    <meta property="og:image:width" content={String(SHARE_IMAGE.width)} />
+    <meta property="og:image:height" content={String(SHARE_IMAGE.height)} />
+    <meta property="og:image:alt" content={ogImageAlt} />
 
     <!-- Twitter / X -->
-    <meta name="twitter:card" content={ogImage ? 'summary_large_image' : 'summary'} />
+    <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content={title} />
     <meta name="twitter:description" content={description} />
-    {ogImage && <meta name="twitter:image" content={ogImage} />}
+    <meta name="twitter:image" content={ogImage} />
+    <meta name="twitter:image:alt" content={ogImageAlt} />
 
-    {jsonLdText && <script type="application/ld+json" set:html={jsonLdText} />}
+    {jsonLdScripts.map((json) => <script type="application/ld+json" set:html={json} />)}
 
     <link rel="icon" href={withBase('favicon.ico')} sizes="any" />
     <link rel="icon" type="image/png" href={withBase('favicon-32.png')} sizes="32x32" />
     <link rel="icon" type="image/png" href={withBase('favicon-192.png')} sizes="192x192" />
     <link rel="apple-touch-icon" href={withBase('apple-touch-icon.png')} />
+
+    <!-- GoatCounter: privacy-friendly, cookieless page counts (same site
+         code as the book). It skips localhost on its own. -->
+    <script
+      is:inline
+      data-goatcounter={`https://${GOATCOUNTER_CODE}.goatcounter.com/count`}
+      async
+      src="https://gc.zgo.at/count.js"></script>
   </head>
   <body>
     <a class="skip-link" href="#main">Skip to content</a>

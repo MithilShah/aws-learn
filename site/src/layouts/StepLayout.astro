@@ -11,8 +11,9 @@ import Sidebar from '../components/Sidebar.astro';
 import Sources from '../components/Sources.astro';
 import { SECTION_NAME } from '../data/site';
 import type { JourneyEntry } from '../lib/content';
-import { neighbors, overviewPath, stepNumber, type Journey } from '../lib/journey';
-import { withBase } from '../lib/urls';
+import { neighbors, overviewPath, stepPath, stepSlug, stepNumber, type Journey } from '../lib/journey';
+import { breadcrumbList, course, shareImagePath, techArticle, type JsonLd, type NamedUrl } from '../lib/seo';
+import { absUrl, withBase } from '../lib/urls';
 
 interface Props {
   journey: Journey<JourneyEntry>;
@@ -40,8 +41,50 @@ const eyebrow =
     : `${service.name} · Step ${stepNumber(journey, slug)} of ${steps.length}`;
 
 const { prev, next } = neighbors(journey, slug);
+
+// ---- SEO: share image + structured data ----
+const siteOrigin = Astro.site!.href;
+const pagePath = slug === null ? overviewPath(service.id) : stepPath(service.id, slug);
+const ogImage = absUrl(shareImagePath(pagePath));
+const overviewUrl: NamedUrl = { name: journey.overview.data.title, url: absUrl(overviewPath(service.id)) };
+const trail: NamedUrl[] = [
+  { name: SECTION_NAME, url: absUrl() },
+  { name: service.name, url: overviewUrl.url },
+  ...(slug === null ? [] : [{ name: navTitle, url: absUrl(pagePath) }]),
+];
+const jsonLd: JsonLd[] = [
+  slug === null
+    ? course({
+        siteOrigin,
+        url: overviewUrl.url,
+        name: title,
+        description,
+        image: ogImage,
+        about: service.name,
+        steps: steps.map((s) => ({ name: s.data.title, url: absUrl(stepPath(service.id, stepSlug(s))) })),
+      })
+    : techArticle({
+        siteOrigin,
+        url: absUrl(pagePath),
+        headline: title,
+        description,
+        image: ogImage,
+        dateModified: lastVerified,
+        about: service.name,
+        course: overviewUrl,
+        citations: sources.map((s) => ({ name: s.title, url: s.url })),
+      }),
+  breadcrumbList(trail),
+];
 ---
-<BaseLayout title={title} description={description}>
+<BaseLayout
+  title={title}
+  description={description}
+  ogType={slug === null ? 'website' : 'article'}
+  ogImage={ogImage}
+  ogImageAlt={`${eyebrow}: ${title}`}
+  jsonLd={jsonLd}
+>
   <Sidebar slot="sidebar" journey={journey} currentSlug={slug} headings={headings} />
   <Breadcrumbs items={crumbs} />
   <article class="prose" data-pagefind-body data-pagefind-filter={`Journey:${service.name}`}>
