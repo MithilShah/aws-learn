@@ -15,6 +15,13 @@ export default defineConfig({
     // Emit /config/how-it-works/index.html so URLs are clean directories.
     format: 'directory',
   },
+  // Allow the DevSpaces proxy host to reach `astro dev` / `astro preview`.
+  // A leading-dot entry matches the domain and all its subdomains, so the
+  // rotating proxy hostnames (…prod.proxy.devspaces.amazon.dev) all work.
+  vite: {
+    server: { allowedHosts: ['.devspaces.amazon.dev'] },
+    preview: { allowedHosts: ['.devspaces.amazon.dev'] },
+  },
   integrations: [
     mdx(),
     // The component kit (/aws/kit/…) is a dev and test page, never listed.
