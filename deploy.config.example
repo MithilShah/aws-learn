@@ -1,0 +1,31 @@
+# deploy.config.example — copy to deploy.config and fill in your values.
+#
+#   cp deploy.config.example deploy.config
+#   # then edit deploy.config
+#
+# deploy.config holds your Bluehost SSH details and is gitignored — never
+# commit it. deploy.sh sources this file as shell, so use KEY="value" with no
+# spaces around the "=".
+
+# Bluehost SSH host (from cPanel › SSH Access / shell access).
+SSH_HOST="server.example.com"
+
+# Your Bluehost SSH username (usually the cPanel account name).
+SSH_USER="myuser"
+
+# SSH port. Bluehost typically uses 2222, not the default 22.
+SSH_PORT="2222"
+
+# Optional: path to the SSH private key to authenticate with. Leave blank to
+# use your ssh-agent or default key (~/.ssh/id_*).
+SSH_KEY=""
+
+# Remote directory to publish into. rsync mirrors site/dist/ here with
+# --delete, so this MUST be the dedicated /aws folder next to WordPress —
+# deploy.sh refuses to run unless this ends in "/aws".
+# Example: /home/myuser/public_html/aws
+REMOTE_PATH="/home/myuser/public_html/aws"
+
+# Public URL of the deployed site. Used only for the post-deploy message and
+# the sitemap reminder. Should match `site` + `base` in site/astro.config.mjs.
+PUBLIC_URL="https://www.studytrails.com/aws/"

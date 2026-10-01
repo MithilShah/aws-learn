@@ -1,0 +1,40 @@
+# .htaccess for the AWS learning-journeys site at studytrails.com/aws/.
+#
+# This file is copied verbatim into dist/ by Astro (anything in public/ is
+# published as-is) and uploaded to the /aws folder on Bluehost. It applies
+# only within /aws/ and does not affect the WordPress site at public_html/.
+
+# Serve our own 404 page instead of letting WordPress handle missing URLs
+# under /aws/. The path is absolute from the domain root (base is /aws).
+ErrorDocument 404 /aws/404.html
+
+# No directory listings — a URL that maps to a folder without an index file
+# returns 404 rather than exposing a file list.
+Options -Indexes
+
+# ---- Cache headers ---------------------------------------------------------
+# Hashed assets can be cached forever; HTML is kept fresh so content and SEO
+# metadata updates show up quickly.
+<IfModule mod_headers.c>
+  # Default for images anywhere: 30 days.
+  <FilesMatch "\.(png|jpg|jpeg|gif|webp|svg|ico)$">
+    Header set Cache-Control "public, max-age=2592000"
+  </FilesMatch>
+
+  # HTML: 10 minutes, so new or corrected pages propagate fast.
+  <FilesMatch "\.html$">
+    Header set Cache-Control "public, max-age=600"
+  </FilesMatch>
+</IfModule>
+
+# Astro fingerprints everything under _astro/ (e.g. app.DEADBEEF.css), so the
+# URL changes whenever the content does — safe to cache for a year, immutable.
+# Scoped to _astro/ so non-hashed assets (e.g. the Pagefind bundle) are not
+# frozen in browser caches. <Directory> is not valid in .htaccess, so match the
+# request path with SetEnvIf and apply the header only when it matches.
+<IfModule mod_setenvif.c>
+  SetEnvIf Request_URI "/_astro/" ST_IMMUTABLE=1
+</IfModule>
+<IfModule mod_headers.c>
+  Header set Cache-Control "public, max-age=31536000, immutable" env=ST_IMMUTABLE
+</IfModule>
