@@ -1,25 +1,140 @@
 ---
 title: "AWS Config Conformance Packs and Aggregators"
-navTitle: "Conformance packs and aggregators"
-description: "Scale AWS Config across accounts: bundle rules and remediation actions into conformance packs, and use an aggregator to see many accounts and Regions at once."
-summary: "Deploy rules and remediation actions as one package, and see configuration and compliance data from many accounts and Regions in one place."
+navTitle: "Packs & aggregators"
+description: "Group AWS Config rules into conformance packs with a YAML template, and roll up compliance across accounts and Regions with a read-only aggregator."
+summary: "Bundle rules and remediation into conformance packs, and get one read-only view across accounts and Regions with an aggregator."
 order: 5
 sources:
   - title: "Conformance Packs for AWS Config"
     url: https://docs.aws.amazon.com/config/latest/developerguide/conformance-packs.html
   - title: "Multi-Account Multi-Region Data Aggregation for AWS Config"
     url: https://docs.aws.amazon.com/config/latest/developerguide/aggregate-data.html
-  - title: "AWS Config terminology and concepts"
-    url: https://docs.aws.amazon.com/config/latest/developerguide/config-concepts.html
-lastVerified: 2026-09-29
+lastVerified: 2026-09-30
 ---
 
-A conformance pack is a collection of AWS Config rules and remediation actions that you deploy
-as a single entity, either in one account and Region or across an organization in
-AWS Organizations. An aggregator collects AWS Config configuration and compliance data from
-multiple accounts and Regions into a single account and Region.
+So far each rule has stood on its own, in one account and one Region. This step scales up: bundle
+many rules into a **conformance pack** you deploy as one unit, and roll up results across many
+accounts and Regions into one read-only view with an **aggregator**.
 
-## What this step covers
+## Conformance packs: rules bundled as one
 
-- What goes into a conformance pack
-- How aggregators collect data, and why they're read-only
+A conformance pack is a collection of AWS Config rules *and* remediation actions that you deploy
+as a single entity — in one account and Region, or across an organization in AWS Organizations.
+You create a pack by authoring a **YAML template** listing the managed or custom rules (and
+remediation) it contains.
+
+<Figure
+  caption="A YAML template bundles rules into one conformance pack"
+  description="On the left, a short YAML template listing two AWS Config rules under a Resources section. An arrow labelled 'deploy as one' points to the right, where a single conformance pack box contains those same rules plus their remediation actions. The point is that one template becomes one deployable bundle."
+>
+  <Diagram width={680} height={190} label="A YAML template on the left becomes a single conformance pack bundle on the right">
+    <ServiceNode x={8} y={66} width={150} label="YAML template" sublabel="Rules + remediation" tone="slate" />
+    <Arrow from={[158, 94]} to={[232, 94]} label="deploy as one" />
+    <ServiceNode x={232} y={30} width={200} label="Conformance pack" sublabel="One deployable entity" tone="violet" />
+    <ServiceNode x={456} y={16} width={216} height={44} label="s3-bucket-public-read-prohibited" tone="indigo" />
+    <ServiceNode x={456} y={70} width={216} height={44} label="encrypted-volumes" tone="indigo" />
+    <ServiceNode x={456} y={124} width={216} height={44} label="required-tags + remediation" tone="teal" />
+    <Arrow from={[432, 70]} to={[456, 40]} dashed />
+    <Arrow from={[432, 94]} to={[456, 92]} dashed />
+    <Arrow from={[432, 118]} to={[456, 144]} dashed />
+  </Diagram>
+</Figure>
+
+A pack template reads much like this — a list of rules under `Resources`:
+
+```yaml
+Resources:
+  S3BucketPublicReadProhibited:
+    Type: AWS::Config::ConfigRule
+    Properties:
+      ConfigRuleName: s3-bucket-public-read-prohibited
+      Source:
+        Owner: AWS
+        SourceIdentifier: S3_BUCKET_PUBLIC_READ_PROHIBITED
+  EncryptedVolumes:
+    Type: AWS::Config::ConfigRule
+    Properties:
+      ConfigRuleName: encrypted-volumes
+      Source:
+        Owner: AWS
+        SourceIdentifier: ENCRYPTED_VOLUMES
+```
+
+<Callout type="tip">
+You don't have to start from a blank file. AWS provides sample conformance pack templates you can
+deploy to evaluate your environment quickly, and you can build a custom pack from there.
+</Callout>
+
+## Aggregators: one read-only view across accounts and Regions
+
+A single pack still reports per account and Region. An **aggregator** is the piece that brings
+everything together: it collects AWS Config configuration and compliance data into one
+*aggregator account* so a central team can see the whole estate at once.
+
+An aggregator can pull from accounts and Regions you name individually, or from an entire
+organization. That choice changes one thing — whether you need to authorize each source account.
+
+<Figure
+  caption="An aggregator rolls up many accounts and Regions into one read-only view"
+  description="Two scenarios shown as tabs. In both, several source accounts across multiple Regions send their AWS Config data into a single aggregator account, drawn with read-only arrows pointing only toward the aggregator. In the authorized-accounts scenario, each source account must grant authorization first. In the organization scenario, no authorization is needed because the accounts belong to the same organization in AWS Organizations."
+>
+  <Tabs label="How the aggregator gathers accounts">
+    <TabPanel label="Authorized accounts">
+
+      You list source accounts individually. Each one must **authorize** the aggregator account
+      and Region to collect its data before anything flows.
+
+      <Diagram width={660} height={190} label="Three authorized source accounts across Regions flow read-only into one aggregator account">
+        <ServiceNode x={8} y={16} width={170} label="Account A" sublabel="us-east-1 · eu-west-1" tone="amber" />
+        <ServiceNode x={8} y={72} width={170} label="Account B" sublabel="us-west-2" tone="amber" />
+        <ServiceNode x={8} y={128} width={170} label="Account C" sublabel="ap-southeast-2" tone="amber" />
+        <Arrow from={[178, 44]} to={[456, 86]} label="authorize" />
+        <Arrow from={[178, 94]} to={[456, 95]} />
+        <Arrow from={[178, 150]} to={[456, 104]} />
+        <ServiceNode x={456} y={70} width={196} label="Aggregator account" sublabel="Read-only view" tone="violet" />
+      </Diagram>
+
+    </TabPanel>
+    <TabPanel label="Organization">
+
+      You pull the source accounts from an organization in AWS Organizations. **No authorization
+      is required** — membership of the organization is enough.
+
+      <Diagram width={660} height={190} label="An organization of accounts flows read-only into one aggregator account, with no authorization step">
+        <ServiceNode x={8} y={70} width={190} label="AWS Organizations" sublabel="All member accounts" tone="indigo" />
+        <ServiceNode x={28} y={16} width={150} height={40} label="Account A" tone="amber" />
+        <ServiceNode x={28} y={132} width={150} height={40} label="Account B" tone="amber" />
+        <Arrow from={[198, 94]} to={[456, 94]} label="no authorization" />
+        <ServiceNode x={456} y={70} width={196} label="Aggregator account" sublabel="Read-only view" tone="violet" />
+      </Diagram>
+
+    </TabPanel>
+  </Tabs>
+</Figure>
+
+<Callout type="misconception">
+An aggregator is **read-only**. It replicates data from the source accounts into the aggregator
+account for viewing — it gives you no mutating access to the sources. You can't deploy rules or
+push snapshot files to a source account through an aggregator. And using aggregators **incurs no
+additional cost**.
+</Callout>
+
+## When you'd use each
+
+A central IT team working across accounts typically uses both together: deploy a conformance pack
+across the organization so every account is checked against the same rules, then create an
+aggregator so the team sees all of that compliance data in one read-only dashboard.
+
+The last step, <StepLink service="config" step="config-vs-cloudtrail-vs-cloudwatch">AWS Config
+vs CloudTrail vs CloudWatch</StepLink>, steps back to place AWS Config among the services it's
+most often confused with.
+
+## Key terms
+
+<KeyTerms>
+  <Term name="Conformance pack">A collection of AWS Config rules and remediation actions deployed as a single entity, in an account and Region or across an organization.</Term>
+  <Term name="YAML template">The file that defines a conformance pack by listing its managed or custom rules and remediation actions.</Term>
+  <Term name="Aggregator">An AWS Config resource that collects configuration and compliance data from multiple accounts and Regions into one aggregator account, as a read-only view, at no additional cost.</Term>
+  <Term name="Source account">An account whose AWS Config data an aggregator collects — named individually or drawn from an organization.</Term>
+  <Term name="Authorization">The permission a source account grants an aggregator to collect its data. Not required when the sources belong to the same organization in AWS Organizations.</Term>
+</KeyTerms>
