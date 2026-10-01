@@ -15,17 +15,153 @@ sources:
     url: https://docs.aws.amazon.com/config/latest/developerguide/select-resources.html
   - title: "Querying the Current Configuration State of AWS Resources with AWS Config"
     url: https://docs.aws.amazon.com/config/latest/developerguide/querying-AWS-resources.html
-lastVerified: 2026-09-29
+lastVerified: 2026-09-30
 ---
 
 When you turn on AWS Config, it first discovers the supported resources in your account and
 creates a configuration item for each one. It then keeps recording new configuration items as
-those configurations change.
+those configurations change. This step follows a single change through that pipeline, from the
+moment it happens to where the record ends up.
 
-## What this step covers
+## Resource discovery and tracking
 
-- Resource discovery and tracking
-- What's inside a configuration item
-- The configuration recorder and recording frequency
-- Where the data goes: Amazon S3 and Amazon SNS
-- Querying your resources with advanced queries
+The moment you turn on AWS Config, it discovers the supported resources that already exist in
+your account and generates a configuration item for each one. By default it records every
+supported resource type in the Region, but you can narrow that to just the resource types you
+care about.
+
+After that, AWS Config keeps track of changes by calling each resource's `Describe` or `List`
+API. It uses those same calls to capture the *related* resources too, so a single change can
+produce several configuration items.
+
+<Callout type="tip">
+AWS Config also catches changes that didn't come through an API. It periodically re-examines your
+resource configurations and records a configuration item for anything that has changed since it
+last looked.
+</Callout>
+
+## A change moving through the pipeline
+
+Here is the AWS documentation's own example. You remove an egress rule from a security group.
+AWS Config calls `Describe` on that security group, then calls `Describe` on every instance
+associated with it. It records the updated security group and each instance as configuration
+items, and delivers them in the configuration stream to your Amazon S3 bucket.
+
+<Figure
+  caption="Removing an egress rule is recorded as configuration items and delivered"
+  description="Four stages shown left to right. Stage 1: a security group changes when you remove an egress rule. Stage 2: AWS Config's recorder calls Describe on the security group and its related instances. Stage 3: each updated resource becomes a configuration item. Stage 4: the configuration items are delivered to an Amazon S3 bucket, and a change notification goes to an Amazon SNS topic."
+>
+  <Stepper
+    label="A change moving through AWS Config"
+    stages={[
+      { title: 'A resource changes.', text: 'You remove an egress rule from a security group.' },
+      { title: 'AWS Config records it.', text: 'The recorder calls Describe on the security group and its related instances.' },
+      { title: 'Configuration items are created.', text: 'The updated security group and each instance become configuration items.' },
+      { title: 'The records are delivered.', text: 'Configuration items flow to Amazon S3, and a notification goes to Amazon SNS.' },
+    ]}
+  >
+    <Diagram width={700} height={150} label="A security group change becomes configuration items delivered to Amazon S3 and Amazon SNS">
+      <ServiceNode x={8} y={48} width={150} label="Security group" sublabel="Egress rule removed" tone="orange" stage="1" />
+      <Arrow from={[158, 76]} to={[214, 76]} label="change" stage="2" />
+      <ServiceNode x={214} y={48} width={150} label="AWS Config" sublabel="Recorder" tone="violet" stage="2 3" />
+      <Arrow from={[364, 76]} to={[420, 76]} label="record" stageFrom={3} />
+      <ServiceNode x={420} y={48} width={120} label="Config items" sublabel="SG + instances" tone="indigo" stageFrom={3} />
+      <Arrow from={[540, 62]} to={[600, 36]} label="S3" stageFrom={4} dashed />
+      <Arrow from={[540, 90]} to={[600, 116]} label="SNS" stageFrom={4} dashed />
+      <ServiceNode x={600} y={10} width={92} height={48} label="Amazon S3" tone="green" stageFrom={4} />
+      <ServiceNode x={600} y={92} width={92} height={48} label="Amazon SNS" tone="teal" stageFrom={4} />
+    </Diagram>
+  </Stepper>
+</Figure>
+
+## What's inside a configuration item
+
+A configuration item is a point-in-time view of the attributes of a supported resource. The AWS
+documentation breaks it into five components.
+
+<Figure
+  caption="The five components of a configuration item"
+  description="Five boxes. Metadata: version ID, capture time, status and state ID. Attributes: resource ID, tags, resource type, ARN, Availability Zone and creation time. Relationships: how the resource relates to others, such as an EBS volume attached to an EC2 instance. Current configuration: the result of the resource's Describe or List API call. Related events: empty since version 1.3."
+>
+  <Diagram width={700} height={120} label="The five parts of a configuration item: metadata, attributes, relationships, current configuration and related events">
+    <ServiceNode x={6} y={34} width={128} label="Metadata" sublabel="Version, time" tone="violet" />
+    <ServiceNode x={144} y={34} width={128} label="Attributes" sublabel="ID, tags, ARN" tone="indigo" />
+    <ServiceNode x={282} y={34} width={128} label="Relationships" sublabel="Links to others" tone="teal" />
+    <ServiceNode x={420} y={34} width={138} label="Current config" sublabel="Describe result" tone="amber" />
+    <ServiceNode x={568} y={34} width={126} label="Related events" sublabel="Empty (1.3+)" tone="slate" />
+  </Diagram>
+</Figure>
+
+- **Metadata** — version ID, when the item was captured, its status, and a state ID that orders a
+  resource's items.
+- **Attributes** — resource ID, tags, resource type, ARN, Availability Zone (if any), and creation
+  time.
+- **Relationships** — how this resource relates to others, such as *EBS volume vol-1234567 is
+  attached to EC2 instance i-a1b2c3d4*.
+- **Current configuration** — what the resource's `Describe` or `List` API returns, for example the
+  details `DescribeVolumes` returns about an EBS volume.
+- **Related events** — a field that has been empty since version 1.3.
+
+<Callout type="note">
+The `relatedEvents` field is empty as of version 1.3. To find the API events behind a change, use
+the `LookupEvents` API in AWS CloudTrail — which is exactly the division of labour the
+<StepLink service="config" step="config-vs-cloudtrail-vs-cloudwatch">last step</StepLink>
+explores.
+</Callout>
+
+## The configuration recorder and how often it records
+
+The configuration recorder is the part that stores configuration changes as configuration items.
+It comes in two kinds: a *customer managed* recorder, where you choose the resource types in
+scope, and a *service-linked* recorder, where a specific AWS service sets the scope.
+
+You also choose how often AWS Config records. The two frequencies behave quite differently:
+
+<Tabs label="Recording frequency">
+  <TabPanel label="Continuous recording">
+
+  AWS Config records a configuration change **whenever a change occurs**. This gives you real-time
+  detection of unauthorized or unexpected changes and lets you analyse changes as they happen.
+
+  *AWS Firewall Manager depends on continuous recording, so AWS recommends continuous if you use
+  it.*
+
+  </TabPanel>
+  <TabPanel label="Daily recording">
+
+  AWS Config delivers one configuration item representing the **most recent state** of a resource
+  over the last 24 hours — and **only if it differs** from the previous one. This means a quieter
+  flow of notifications and lower cost when you don't need change-by-change detail.
+
+  </TabPanel>
+</Tabs>
+
+## Where the data goes
+
+AWS Config delivers through two channels:
+
+- **An Amazon S3 bucket.** For each recorded resource type, AWS Config sends a *configuration
+  history file every six hours* describing the resources of that type that changed in the period
+  (if none changed, it sends nothing). On request — the `deliver-config-snapshot` CLI command or
+  the `DeliverConfigSnapshot` API — it also sends a *configuration snapshot* covering every
+  recorded resource. Both are JSON.
+- **An Amazon SNS topic.** AWS Config sends notifications here. The one delivered within minutes of
+  every change is the `ConfigurationItemChangeNotification`, and the running list of these is
+  called the **configuration stream**.
+
+## Asking questions about your resources
+
+Once AWS Config is recording, you don't have to read raw JSON to answer a question. *Advanced
+queries* let you query the current configuration state of your resources with SQL-like
+statements, either from a library of sample queries or your own. For example, you could list
+every EC2 instance of a given type, or every S3 bucket, across the resources AWS Config records.
+
+## Key terms
+
+<KeyTerms>
+  <Term name="Configuration item">A point-in-time view of the attributes of a supported AWS resource, made up of metadata, attributes, relationships, current configuration and related events.</Term>
+  <Term name="Configuration recorder">The part of AWS Config that stores configuration changes to the resource types in scope as configuration items.</Term>
+  <Term name="Configuration history">A collection of a resource's configuration items over a period of time, delivered as a history file to Amazon S3 every six hours per resource type.</Term>
+  <Term name="Configuration snapshot">A point-in-time collection of configuration items for every recorded resource, delivered to Amazon S3 on request.</Term>
+  <Term name="Configuration stream">The automatically updated list of configuration items, delivered as change notifications through Amazon SNS.</Term>
+</KeyTerms>

@@ -57,7 +57,15 @@ test.describe('navigation', () => {
     await page.goto(stepUrl('how-it-works'));
     await expect(sidebar(page).locator('.nav-steps > li')).toHaveCount(STEPS.length);
     const outline = sidebarStep(page, 'how-it-works').locator('.nav-sections a');
-    await expect(outline).toHaveText(['What this step covers']);
+    await expect(outline).toHaveText([
+      'Resource discovery and tracking',
+      'A change moving through the pipeline',
+      "What’s inside a configuration item",
+      'The configuration recorder and how often it records',
+      'Where the data goes',
+      'Asking questions about your resources',
+      'Key terms',
+    ]);
     // Only the current step is expanded.
     await expect(sidebar(page).locator('.nav-sections')).toHaveCount(1);
   });
@@ -91,10 +99,13 @@ test.describe('progress', () => {
   });
 
   test('progress adds up across steps, shows on the overview, and ignores the overview itself', async ({ page }) => {
-    // At full height these stub pages fit on screen, so visiting completes them.
+    // Reaching the end of a step marks it done, whatever the page length.
+    const sentinel = page.locator('[data-read-sentinel]');
     await page.goto(stepUrl('what-is-aws-config'));
+    await sentinel.scrollIntoViewIfNeeded();
     await expect(progressText(page)).toHaveText('1 of 6 steps done');
     await page.goto(stepUrl('config-rules'));
+    await sentinel.scrollIntoViewIfNeeded();
     await expect(progressText(page)).toHaveText('2 of 6 steps done');
 
     await page.goto(OVERVIEW);
@@ -109,6 +120,7 @@ test.describe('progress', () => {
     await page.goto(OVERVIEW);
     await page.evaluate(() => localStorage.setItem('st-aws:config', '{broken'));
     await page.goto(stepUrl('remediation'));
+    await page.locator('[data-read-sentinel]').scrollIntoViewIfNeeded();
     await expect(progressText(page)).toHaveText('1 of 6 steps done');
   });
 });
@@ -135,13 +147,13 @@ test.describe('scroll-spy', () => {
   test('highlights the section being read and mirrors it in the URL', async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 400 });
     await page.goto(stepUrl('how-it-works'));
-    const link = sidebar(page).locator('[data-nav-anchor="what-this-step-covers"]');
+    const link = sidebar(page).locator('[data-nav-anchor="resource-discovery-and-tracking"]');
     // First section is highlighted by default, but the URL stays clean.
     await expect(link).toHaveAttribute('aria-current', 'true');
     await expect(page).toHaveURL(/how-it-works\/$/);
 
-    await page.locator('#what-this-step-covers').evaluate((el) => el.scrollIntoView());
-    await expect(page).toHaveURL(/how-it-works\/#what-this-step-covers$/);
+    await page.locator('#resource-discovery-and-tracking').evaluate((el) => el.scrollIntoView());
+    await expect(page).toHaveURL(/how-it-works\/#resource-discovery-and-tracking$/);
 
     await page.evaluate(() => window.scrollTo(0, 0));
     await expect(page).toHaveURL(/how-it-works\/$/);
@@ -170,7 +182,7 @@ test.describe('mobile', () => {
 
     // Choosing a section on this page closes the menu.
     await toggle.click();
-    await panel.getByRole('link', { name: 'What this step covers' }).click();
+    await panel.getByRole('link', { name: 'Resource discovery and tracking' }).click();
     await expect(panel).toBeHidden();
     await expect(toggle).toHaveAttribute('aria-expanded', 'false');
   });
