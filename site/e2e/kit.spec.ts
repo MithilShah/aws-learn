@@ -174,6 +174,47 @@ test.describe('without JavaScript', () => {
   });
 });
 
+test.describe('rule simulator', () => {
+  test('picks a rule and resource and shows the matching evaluation result', async ({ page }) => {
+    await page.goto(KIT);
+    const sim = page.locator('[data-rule-sim]');
+    // With JS the interactive picker replaces the static table.
+    await expect(sim.locator('[data-rule-sim-ui]')).toBeVisible();
+    await expect(sim.locator('[data-rule-sim-table]')).toBeHidden();
+
+    const pill = sim.locator('[data-sim-pill] .pill, [data-sim-pill]').first();
+    // encrypted-volumes defaults to the first resource (encrypted volume) -> COMPLIANT.
+    await expect(sim.locator('[data-sim-pill]')).toContainText('COMPLIANT');
+
+    // Point it at the unencrypted volume -> NON_COMPLIANT.
+    await sim.locator('[data-sim-resource]').selectOption({ label: 'Unencrypted EBS volume' });
+    await expect(sim.locator('[data-sim-pill]')).toContainText('NON_COMPLIANT');
+
+    // Point it at an S3 bucket -> NOT_APPLICABLE (out of scope).
+    await sim.locator('[data-sim-resource]').selectOption({ label: 'S3 bucket with versioning on' });
+    await expect(sim.locator('[data-sim-pill]')).toContainText('NOT_APPLICABLE');
+
+    // required-tags needs a parameter: ERROR until tagKey is given.
+    await sim.locator('[data-sim-rule]').selectOption({ label: 'required-tags' });
+    await expect(sim.locator('[data-sim-param-field]')).toBeVisible();
+    await expect(sim.locator('[data-sim-pill]')).toContainText('ERROR');
+    await sim.locator('[data-sim-param]').fill('team');
+    await expect(sim.locator('[data-sim-pill]')).toContainText('COMPLIANT');
+    expect(pill).toBeTruthy();
+  });
+
+  test('without JavaScript, shows the full results table', async ({ browser }) => {
+    const page = await browser.newPage({ javaScriptEnabled: false });
+    await page.route('https://gc.zgo.at/**', (route) => route.fulfill({ body: '', contentType: 'application/javascript' }));
+    await page.goto(KIT);
+    const table = page.locator('[data-rule-sim-table]');
+    await expect(table).toBeVisible();
+    // 3 rules x 4 resources = 12 result pills.
+    await expect(table.locator('tbody .pill')).toHaveCount(12);
+    await page.close();
+  });
+});
+
 test.describe('journey map', () => {
   const setProgress = async (page: import('@playwright/test').Page, done: string[]) => {
     await page.evaluate((d) => localStorage.setItem('st-aws:config', JSON.stringify({ v: 1, done: d })), done);

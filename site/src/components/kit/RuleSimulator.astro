@@ -1,0 +1,113 @@
+---
+// An interactive AWS Config rule evaluator. Without JavaScript it shows a
+// full results table (every rule against every resource), so the content is
+// complete for search engines and readers without JS. With JavaScript
+// (src/scripts/rule-simulator.ts) it becomes a picker: choose a rule and a
+// resource, optionally set a parameter, and see which of the four evaluation
+// results you get and why.
+//   <RuleSimulator />  (self-contained; data lives in lib/rule-simulator-data)
+import CompliancePill from './CompliancePill.astro';
+import { evaluate } from '../../lib/rule-simulator';
+import { resources, rules } from '../../lib/rule-simulator-data';
+---
+<div class="rule-sim" data-rule-sim>
+  <noscript>
+    <p class="rule-sim-note">
+      Every rule evaluated against every sample resource. With JavaScript, you can pick one of
+      each and set a parameter.
+    </p>
+  </noscript>
+
+  {/* Interactive picker, revealed by the script. */}
+  <div class="rule-sim-ui" data-rule-sim-ui hidden>
+    <div class="rule-sim-controls">
+      <label>Rule
+        <select data-sim-rule>
+          {rules.map((rule) => <option value={rule.id}>{rule.name}</option>)}
+        </select>
+      </label>
+      <label>Resource
+        <select data-sim-resource>
+          {resources.map((res) => <option value={res.id}>{res.label}</option>)}
+        </select>
+      </label>
+      <label data-sim-param-field hidden>
+        <span data-sim-param-label>Parameter</span>
+        <input type="text" data-sim-param placeholder="" />
+      </label>
+    </div>
+    <p class="rule-sim-desc" data-sim-desc></p>
+    <p class="rule-sim-outcome">
+      Result: <span data-sim-pill></span>
+      <span class="rule-sim-reason" data-sim-reason></span>
+    </p>
+    <p class="visually-hidden" aria-live="polite" data-sim-live></p>
+  </div>
+
+  {/* Static fallback: the complete grid of results. */}
+  <table class="rule-sim-table" data-rule-sim-table>
+    <caption class="visually-hidden">AWS Config evaluation results for each sample rule and resource</caption>
+    <thead>
+      <tr>
+        <th scope="col">Rule</th>
+        {resources.map((res) => <th scope="col">{res.label}</th>)}
+      </tr>
+    </thead>
+    <tbody>
+      {rules.map((rule) => (
+        <tr>
+          <th scope="row"><code>{rule.name}</code></th>
+          {resources.map((res) => (
+            <td><CompliancePill status={evaluate(rule, res)} /></td>
+          ))}
+        </tr>
+      ))}
+    </tbody>
+  </table>
+</div>
+
+<script>
+  import '../../scripts/rule-simulator';
+</script>
+
+<style>
+  .rule-sim { margin: 24px 0; }
+  .rule-sim-note { font-size: 14.5px; color: var(--ink-3); margin: 0 0 10px; }
+  .rule-sim-ui {
+    padding: 16px 18px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: var(--surface);
+    margin-bottom: 20px;
+  }
+  .rule-sim-controls { display: flex; flex-wrap: wrap; gap: 14px; }
+  .rule-sim-controls label {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--ink-2);
+  }
+  .rule-sim-controls select,
+  .rule-sim-controls input {
+    padding: 7px 10px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font: 400 14.5px/1.3 var(--font-sans);
+    background: #fff;
+    color: var(--ink);
+  }
+  .rule-sim-desc { margin: 14px 0 6px; font-size: 14.5px; color: var(--ink-3); }
+  .rule-sim-outcome { margin: 6px 0 0; font-size: 15.5px; }
+  .rule-sim-reason { display: block; margin-top: 6px; font-size: 14.5px; color: var(--ink-3); }
+
+  .rule-sim-table { width: 100%; border-collapse: collapse; font-size: 14.5px; }
+  .rule-sim-table th,
+  .rule-sim-table td { border: 1px solid var(--border); padding: 8px 10px; text-align: left; }
+  .rule-sim-table thead th { background: var(--surface); font-size: 13.5px; }
+  .rule-sim-table th[scope='row'] { white-space: nowrap; }
+  .rule-sim-table code { font-size: 13px; }
+  /* The script hides the full table once the picker is live. */
+  .rule-sim-table[hidden] { display: none; }
+</style>

@@ -13,16 +13,108 @@ sources:
     url: https://docs.aws.amazon.com/config/latest/developerguide/encrypted-volumes.html
   - title: "AWS Config FAQs"
     url: https://aws.amazon.com/config/faq/
-lastVerified: 2026-09-29
+lastVerified: 2026-09-30
 ---
 
 An AWS Config rule is a compliance check for the configuration settings of your AWS resources.
 AWS Config evaluates whether your resources comply with your rules and shows you the results.
 Rules report problems. They don't stop anyone from making a change.
 
-## What this step covers
+## The four evaluation results
 
-- Managed rules and custom rules
-- When rules run: on configuration changes, on a schedule, or both
-- The four evaluation results, such as `COMPLIANT` and `NON_COMPLIANT`
-- Why rules detect problems rather than prevent them
+Every time AWS Config evaluates a resource against a rule, the outcome is one of four results.
+You will see these everywhere in AWS Config, so they are worth learning first.
+
+- <CompliancePill status="COMPLIANT" /> — the resource passes the conditions of the check.
+- <CompliancePill status="NON_COMPLIANT" /> — the resource fails the conditions of the check.
+- <CompliancePill status="ERROR" /> — a required parameter is missing, the wrong type, or
+  formatted incorrectly, so the rule can't run.
+- <CompliancePill status="NOT_APPLICABLE" /> — the rule's logic doesn't apply to this resource,
+  so it is filtered out. The AWS docs give the example of `alb-desync-mode-check`, which only
+  checks Application Load Balancers and ignores Network and Gateway Load Balancers.
+
+## Try it: the rule simulator
+
+The clearest way to understand the four results is to produce them. Pick a rule and a resource
+below. The `encrypted-volumes` rule, for instance, is <CompliancePill status="NON_COMPLIANT" />
+for an unencrypted EBS volume and <CompliancePill status="COMPLIANT" /> for an encrypted one —
+and <CompliancePill status="NOT_APPLICABLE" /> if you point it at an S3 bucket, because its logic
+doesn't apply there.
+
+<Figure
+  caption="Evaluate a rule against a resource and watch the result"
+  description="A rule simulator. Choose one of three AWS Config rules (encrypted-volumes, s3-bucket-versioning-enabled, required-tags) and one of four sample resources (an encrypted and an unencrypted EBS volume, and an S3 bucket with versioning on and off). Some rules take a parameter. The simulator shows one of the four evaluation results and explains it. Without JavaScript, a table lists the result of every rule against every resource."
+>
+  <RuleSimulator />
+</Figure>
+
+Notice that `required-tags` returns <CompliancePill status="ERROR" /> until you give it a
+`tagKey`: a rule that is missing a required parameter can't evaluate anything.
+
+## Managed rules and custom rules
+
+You don't have to write every rule yourself.
+
+<Tabs label="Kinds of rules">
+  <TabPanel label="Managed rules">
+
+  AWS Config provides a large set of **managed rules** that cover common best practices, ready to
+  turn on. `encrypted-volumes` is one of them: it checks whether attached EBS volumes are
+  encrypted, and optionally whether they use a specific KMS key you name in the `kmsId` parameter.
+
+  </TabPanel>
+  <TabPanel label="Custom rules">
+
+  When no managed rule fits, you write a **custom rule**. The rule's evaluation logic lives either
+  in an AWS Lambda function you provide, or in a Guard policy. AWS Config invokes your logic and
+  uses the compliance status it returns.
+
+  </TabPanel>
+</Tabs>
+
+## When rules run
+
+A rule's **trigger** decides when AWS Config evaluates it. After the first evaluation when you add
+the rule, AWS Config re-evaluates whenever a trigger fires.
+
+<Figure
+  caption="The three trigger types"
+  description="Three trigger types. Configuration changes: the rule runs when a resource in its scope changes, after AWS Config sends a configuration item change notification. Periodic: the rule runs on a schedule you choose, for example every 24 hours. Hybrid: the rule runs both on configuration changes and on the schedule."
+>
+  <Diagram width={660} height={120} label="Three AWS Config rule trigger types: configuration changes, periodic and hybrid">
+    <ServiceNode x={8} y={34} width={200} label="Configuration changes" sublabel="When a resource changes" tone="violet" />
+    <ServiceNode x={232} y={34} width={180} label="Periodic" sublabel="On a schedule" tone="indigo" />
+    <ServiceNode x={436} y={34} width={216} label="Hybrid" sublabel="Changes + schedule" tone="teal" />
+  </Diagram>
+</Figure>
+
+- **Configuration changes** — the rule runs when a resource that matches its *scope* changes,
+  right after AWS Config records the change. You set the scope by resource type, a type plus a
+  resource ID, a tag key and value, or "any recorded resource".
+- **Periodic** — the rule runs at a frequency you choose, for example every 24 hours.
+- **Hybrid** — some rules do both: they run on configuration changes *and* on the schedule.
+
+## Detect, don't prevent
+
+This is the point beginners most often get wrong, so it's worth stating plainly.
+
+<Callout type="misconception">
+AWS Config rules **detect** problems; they don't **prevent** them. A rule evaluates a resource's
+configuration *after* the change has been recorded and flags it as noncompliant — it does not
+block the change. Even *proactive* evaluation, which checks resource properties before deployment,
+does not remediate noncompliant resources or stop them from being deployed.
+</Callout>
+
+So what do you do about a noncompliant resource? That's the subject of the next step,
+<StepLink service="config" step="remediation">remediation</StepLink>, which can bring a resource
+back to <CompliancePill status="COMPLIANT" />.
+
+## Key terms
+
+<KeyTerms>
+  <Term name="AWS Config rule">A compliance check for the configuration settings of your resources. AWS Config evaluates your resources against the rule and reports the result.</Term>
+  <Term name="Managed rule">A predefined rule that AWS Config provides for common best practices, which you can turn on and configure.</Term>
+  <Term name="Custom rule">A rule whose evaluation logic you supply, as an AWS Lambda function or a Guard policy.</Term>
+  <Term name="Trigger">What causes a rule to evaluate: a configuration change, a periodic schedule, or both (hybrid).</Term>
+  <Term name="Scope">The resources a change-triggered rule watches, defined by resource type, resource ID, tags, or all recorded resources.</Term>
+</KeyTerms>

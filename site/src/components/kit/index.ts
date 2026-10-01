@@ -6,6 +6,7 @@ import CompliancePill from './CompliancePill.astro';
 import Diagram from './Diagram.astro';
 import Figure from './Figure.astro';
 import KeyTerms from './KeyTerms.astro';
+import RuleSimulator from './RuleSimulator.astro';
 import ServiceNode from './ServiceNode.astro';
 import StepLink from './StepLink.astro';
 import Stepper from './Stepper.astro';
@@ -20,6 +21,7 @@ export const mdxComponents = {
   Diagram,
   Figure,
   KeyTerms,
+  RuleSimulator,
   ServiceNode,
   StepLink,
   Stepper,
