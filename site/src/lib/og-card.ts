@@ -109,7 +109,7 @@ function cardTree({ eyebrow, title, summary, steps }: CardInput): Node {
       el('div', { display: 'flex', flexDirection: 'column', justifyContent: 'center', flexGrow: 1 }, body),
       el('div', { display: 'flex', justifyContent: 'space-between', fontSize: 24, fontWeight: 700, opacity: 0.92 }, [
         el('div', { display: 'flex' }, 'by Mithil Shah'),
-        el('div', { display: 'flex' }, 'studytrails.com/aws'),
+        el('div', { display: 'flex' }, 'studytrails.com/aws-learn'),
       ]),
     ],
   );

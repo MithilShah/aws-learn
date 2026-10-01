@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #
 # deploy.sh — build the AWS learning-journeys site and publish it to
-# studytrails.com/aws/ (Bluehost), next to the WordPress site.
+# studytrails.com/aws-learn/ (Bluehost), next to the WordPress site.
 #
 # The site is an Astro static site (site/). This script runs the test suite,
 # builds the site (which also runs Pagefind indexing via `npm run postbuild`),
@@ -12,7 +12,7 @@
 # Safety:
 #   - rsync uses --delete, so it mirrors dist/ onto REMOTE_PATH. To make sure a
 #     misconfigured path can never wipe the WordPress site at public_html/,
-#     this script REFUSES to run unless REMOTE_PATH ends in "/aws".
+#     this script REFUSES to run unless REMOTE_PATH ends in "/aws-learn".
 #   - Unit tests, the type check and the dist/SEO checks all run before any
 #     upload. A failure aborts before touching the server.
 #
@@ -53,10 +53,11 @@ if [[ "$BUILD_ONLY" == "0" ]]; then
   : "${SSH_PORT:=22}"
   : "${REMOTE_PATH:?Set REMOTE_PATH in deploy.config}"
 
-  # Safety guard: never let rsync --delete point anywhere but an /aws folder.
-  # Strip a single trailing slash first so ".../aws" and ".../aws/" both pass.
-  if [[ "${REMOTE_PATH%/}" != *"/aws" ]]; then
-    echo "ERROR: refusing to deploy — REMOTE_PATH must end in \"/aws\"."
+  # Safety guard: never let rsync --delete point anywhere but an /aws-learn
+  # folder. Strip a single trailing slash first so ".../aws-learn" and
+  # ".../aws-learn/" both pass.
+  if [[ "${REMOTE_PATH%/}" != *"/aws-learn" ]]; then
+    echo "ERROR: refusing to deploy — REMOTE_PATH must end in \"/aws-learn\"."
     echo "       Got: ${REMOTE_PATH}"
     echo "       This guard stops rsync --delete from ever wiping the"
     echo "       WordPress site at public_html/."

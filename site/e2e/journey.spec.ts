@@ -1,7 +1,7 @@
 import type { Page } from '@playwright/test';
 import { expect, test } from './fixtures';
 
-const OVERVIEW = '/aws/config/';
+const OVERVIEW = '/aws-learn/config/';
 const STEPS = [
   'what-is-aws-config',
   'how-it-works',
@@ -10,7 +10,7 @@ const STEPS = [
   'conformance-packs-and-aggregators',
   'config-vs-cloudtrail-vs-cloudwatch',
 ];
-const stepUrl = (slug: string) => `/aws/config/${slug}/`;
+const stepUrl = (slug: string) => `/aws-learn/config/${slug}/`;
 /** Matches a page URL, ignoring any #section the scroll-spy adds. */
 const at = (path: string) => new RegExp(`^http://localhost:\\d+${path.replace(/[/.]/g, '\\$&')}(#.*)?$`);
 
@@ -20,7 +20,7 @@ const sidebarStep = (page: Page, slug: string) => sidebar(page).locator(`[data-s
 
 test.describe('navigation', () => {
   test('hub → overview → every step with Next, then back with Previous', async ({ page }) => {
-    await page.goto('/aws/');
+    await page.goto('/aws-learn/');
     await page.getByRole('main').getByRole('link', { name: 'AWS Config' }).click();
     await expect(page).toHaveURL(at(OVERVIEW));
     await expect(page.getByRole('heading', { level: 1 })).toHaveText('AWS Config Tutorial for Beginners');
@@ -50,7 +50,7 @@ test.describe('navigation', () => {
     await crumbs.getByRole('link', { name: 'AWS Config' }).click();
     await expect(page).toHaveURL(at(OVERVIEW));
     await page.getByRole('navigation', { name: 'Breadcrumb' }).getByRole('link', { name: 'AWS Learning Journeys' }).click();
-    await expect(page).toHaveURL(at('/aws/'));
+    await expect(page).toHaveURL(at('/aws-learn/'));
   });
 
   test('the sidebar lists every step and outlines the current one', async ({ page }) => {
@@ -126,7 +126,7 @@ test.describe('progress', () => {
 });
 
 test.describe('search', () => {
-  test('finds a step by its content and links under /aws/', async ({ page }) => {
+  test('finds a step by its content and links under /aws-learn/', async ({ page }) => {
     await page.goto(stepUrl('remediation'));
     await page.getByPlaceholder('Search the journeys').fill('configuration item');
 
@@ -135,10 +135,10 @@ test.describe('search', () => {
     // With a single journey the filter panel is hidden (see Search.astro).
     await expect(page.locator('.pagefind-ui__filter-panel')).toBeHidden();
     const hrefs = await results.evaluateAll((links) => links.map((a) => a.getAttribute('href') ?? ''));
-    expect(hrefs.some((href) => href.startsWith('/aws/config/how-it-works/'))).toBe(true);
-    for (const href of hrefs) expect(href).toMatch(/^\/aws\/config\//);
+    expect(hrefs.some((href) => href.startsWith('/aws-learn/config/how-it-works/'))).toBe(true);
+    for (const href of hrefs) expect(href).toMatch(/^\/aws-learn\/config\//);
 
-    await page.locator('.pagefind-ui__result-title .pagefind-ui__result-link[href="/aws/config/how-it-works/"]').click();
+    await page.locator('.pagefind-ui__result-title .pagefind-ui__result-link[href="/aws-learn/config/how-it-works/"]').click();
     await expect(page).toHaveURL(at(stepUrl('how-it-works')));
   });
 });

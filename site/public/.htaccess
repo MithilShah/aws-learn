@@ -1,12 +1,13 @@
-# .htaccess for the AWS learning-journeys site at studytrails.com/aws/.
+# .htaccess for the AWS learning-journeys site at studytrails.com/aws-learn/.
 #
 # This file is copied verbatim into dist/ by Astro (anything in public/ is
-# published as-is) and uploaded to the /aws folder on Bluehost. It applies
-# only within /aws/ and does not affect the WordPress site at public_html/.
+# published as-is) and uploaded to the /aws-learn folder on Bluehost. It applies
+# only within /aws-learn/ and does not affect the WordPress site at public_html/.
 
 # Serve our own 404 page instead of letting WordPress handle missing URLs
-# under /aws/. The path is absolute from the domain root (base is /aws).
-ErrorDocument 404 /aws/404.html
+# under /aws-learn/. The path is absolute from the domain root (base is
+# /aws-learn).
+ErrorDocument 404 /aws-learn/404.html
 
 # No directory listings — a URL that maps to a folder without an index file
 # returns 404 rather than exposing a file list.

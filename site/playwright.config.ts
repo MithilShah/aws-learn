@@ -19,7 +19,7 @@ export default defineConfig({
     // --ignore-lock: Astro 7 refuses a second preview server, and tests
     // should still run while you have `npm run preview` open.
     command: `npx astro preview --port ${PORT} --ignore-lock`,
-    url: `http://localhost:${PORT}/aws/`,
+    url: `http://localhost:${PORT}/aws-learn/`,
     reuseExistingServer: false,
     timeout: 60_000,
   },

@@ -1,6 +1,9 @@
 # --- secrets (SSH host/user/key path for deploy.sh) ---
 deploy.config
 
+# --- scratch: public key text for pasting into Bluehost ---
+studytrails_deploy_authorized_key.txt
+
 # --- build output ---
 site/dist/
 site/.astro/

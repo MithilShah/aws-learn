@@ -1,9 +1,9 @@
 # AWS Learning Journeys
 
 Beginner-friendly, documentation-backed learning journeys for AWS services,
-published at **https://www.studytrails.com/aws/**. The first journey covers
+published at **https://www.studytrails.com/aws-learn/**. The first journey covers
 **AWS Config**. The site is a static [Astro](https://astro.build) build served
-from a real `/aws/` folder next to the WordPress site on Bluehost.
+from a real `/aws-learn/` folder next to the WordPress site on Bluehost.
 
 ## Layout
 
@@ -20,8 +20,8 @@ Journey content lives in `journeys/`, *outside* the Astro project, so writing a
 page never means touching site code:
 
 ```
-journeys/<service>/index.mdx      ->  /aws/<service>/           (overview)
-journeys/<service>/<step>.mdx     ->  /aws/<service>/<step>/    (a step)
+journeys/<service>/index.mdx      ->  /aws-learn/<service>/           (overview)
+journeys/<service>/<step>.mdx     ->  /aws-learn/<service>/<step>/    (a step)
 ```
 
 ## Working on the site
@@ -119,13 +119,13 @@ Safety notes:
 - `deploy.sh` runs the unit tests, the type check and the dist/SEO checks
   **before** any upload, and aborts on failure.
 - rsync uses `--delete`, so `deploy.sh` **refuses to run unless `REMOTE_PATH`
-  ends in `/aws`** — this prevents it from ever mirroring over the WordPress
+  ends in `/aws-learn`** — this prevents it from ever mirroring over the WordPress
   site at `public_html/`.
-- `site/public/.htaccess` ships the `/aws/` 404 page, disables directory
-  listings and sets cache headers. It only affects `/aws/`.
-- Deploying touches the production site. Only run the live upload after the
-  content is reviewed and you've confirmed there's no WordPress page with the
-  slug `aws`.
+- `site/public/.htaccess` ships the `/aws-learn/` 404 page, disables directory
+  listings and sets cache headers. It only affects `/aws-learn/`.
+- Deploying touches the production site. The folder is `/aws-learn` (not
+  `/aws`) because WordPress already has a post whose slug collides with `/aws`.
+  Only run the live upload after the content is reviewed.
 
-After the first deploy, submit `https://www.studytrails.com/aws/sitemap-index.xml`
+After the first deploy, submit `https://www.studytrails.com/aws-learn/sitemap-index.xml`
 in Google Search Console (`robots.txt` belongs to WordPress).

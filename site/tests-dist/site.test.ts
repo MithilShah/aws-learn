@@ -10,12 +10,12 @@ import { beforeAll, describe, expect, it } from 'vitest';
 
 const DIST = fileURLToPath(new URL('../dist/', import.meta.url));
 const SITE = 'https://www.studytrails.com';
-const BASE = '/aws/';
+const BASE = '/aws-learn/';
 const GOATCOUNTER = 'https://studytrails.goatcounter.com/count';
 
 interface Page {
   file: string;
-  /** URL path, e.g. '/aws/config/how-it-works/' or '/aws/404.html'. */
+  /** URL path, e.g. '/aws-learn/config/how-it-works/' or '/aws-learn/404.html'. */
   path: string;
   root: HTMLElement;
   noindex: boolean;
@@ -80,15 +80,15 @@ describe('the build', () => {
     const paths = pages.map((p) => p.path).sort();
     expect(paths).toEqual(
       [
-        '/aws/',
-        '/aws/404.html',
-        '/aws/config/',
-        '/aws/config/config-rules/',
-        '/aws/config/config-vs-cloudtrail-vs-cloudwatch/',
-        '/aws/config/conformance-packs-and-aggregators/',
-        '/aws/config/how-it-works/',
-        '/aws/config/remediation/',
-        '/aws/config/what-is-aws-config/',
+        '/aws-learn/',
+        '/aws-learn/404.html',
+        '/aws-learn/config/',
+        '/aws-learn/config/config-rules/',
+        '/aws-learn/config/config-vs-cloudtrail-vs-cloudwatch/',
+        '/aws-learn/config/conformance-packs-and-aggregators/',
+        '/aws-learn/config/how-it-works/',
+        '/aws-learn/config/remediation/',
+        '/aws-learn/config/what-is-aws-config/',
       ].sort(),
     );
   });
@@ -195,7 +195,7 @@ describe('indexable pages', () => {
         expect(data['@context'], path).toBe('https://schema.org');
         expect(typeof data['@type'], path).toBe('string');
         // Every absolute URL under the site must be a page we built.
-        const urls = JSON.stringify(data).match(/https:\/\/www\.studytrails\.com\/aws\/[^"]*/g) ?? [];
+        const urls = JSON.stringify(data).match(/https:\/\/www\.studytrails\.com\/aws-learn\/[^"]*/g) ?? [];
         for (const url of urls) {
           expect(fileFor(new URL(url).pathname), `${path} JSON-LD -> ${url}`).not.toBeNull();
         }
@@ -208,17 +208,17 @@ describe('structured data by page type', () => {
   const types = (path: string) => byPath.get(path)!.jsonLd.map((d) => d['@type']);
 
   it('hub: an ItemList of journeys', () => {
-    expect(types('/aws/')).toEqual(['ItemList']);
+    expect(types('/aws-learn/')).toEqual(['ItemList']);
   });
 
   it('overview: a Course listing all six steps, plus breadcrumbs', () => {
-    expect(types('/aws/config/')).toEqual(['Course', 'BreadcrumbList']);
-    const courseLd = byPath.get('/aws/config/')!.jsonLd[0];
+    expect(types('/aws-learn/config/')).toEqual(['Course', 'BreadcrumbList']);
+    const courseLd = byPath.get('/aws-learn/config/')!.jsonLd[0];
     expect((courseLd.hasPart as unknown[]).length).toBe(6);
   });
 
   it('steps: a TechArticle with citations, plus a three-level breadcrumb', () => {
-    const steps = indexable.filter((p) => /^\/aws\/config\/[^/]+\/$/.test(p.path));
+    const steps = indexable.filter((p) => /^\/aws-learn\/config\/[^/]+\/$/.test(p.path));
     expect(steps.length).toBe(6);
     for (const { path, jsonLd } of steps) {
       expect(jsonLd.map((d) => d['@type']), path).toEqual(['TechArticle', 'BreadcrumbList']);
@@ -232,7 +232,7 @@ describe('structured data by page type', () => {
 
 describe('noindex pages', () => {
   it('the 404 page is noindex and has no canonical URL', () => {
-    const notFound = byPath.get('/aws/404.html')!;
+    const notFound = byPath.get('/aws-learn/404.html')!;
     expect(notFound.noindex).toBe(true);
     expect(notFound.root.querySelector('link[rel="canonical"]')).toBeNull();
   });

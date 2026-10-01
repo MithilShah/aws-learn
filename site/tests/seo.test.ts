@@ -2,8 +2,8 @@ import { describe, expect, it } from 'vitest';
 import { breadcrumbList, course, itemList, organization, shareImagePath, techArticle } from '../src/lib/seo';
 
 const SITE = 'https://www.studytrails.com';
-const OVERVIEW = `${SITE}/aws/config/`;
-const STEP = `${SITE}/aws/config/how-it-works/`;
+const OVERVIEW = `${SITE}/aws-learn/config/`;
+const STEP = `${SITE}/aws-learn/config/how-it-works/`;
 
 describe('organization', () => {
   it('points at the site root', () => {
@@ -14,14 +14,14 @@ describe('organization', () => {
 describe('breadcrumbList', () => {
   it('numbers items from 1 and ends with the current page', () => {
     const ld = breadcrumbList([
-      { name: 'AWS Learning Journeys', url: `${SITE}/aws/` },
+      { name: 'AWS Learning Journeys', url: `${SITE}/aws-learn/` },
       { name: 'AWS Config', url: OVERVIEW },
       { name: 'How it works', url: STEP },
     ]);
     expect(ld['@context']).toBe('https://schema.org');
     expect(ld['@type']).toBe('BreadcrumbList');
     expect(ld.itemListElement).toEqual([
-      { '@type': 'ListItem', position: 1, name: 'AWS Learning Journeys', item: `${SITE}/aws/` },
+      { '@type': 'ListItem', position: 1, name: 'AWS Learning Journeys', item: `${SITE}/aws-learn/` },
       { '@type': 'ListItem', position: 2, name: 'AWS Config', item: OVERVIEW },
       { '@type': 'ListItem', position: 3, name: 'How it works', item: STEP },
     ]);
@@ -42,10 +42,10 @@ describe('course', () => {
     url: OVERVIEW,
     name: 'AWS Config Tutorial for Beginners',
     description: 'Learn AWS Config step by step.',
-    image: `${SITE}/aws/og/config.png`,
+    image: `${SITE}/aws-learn/og/config.png`,
     about: 'AWS Config',
     steps: [
-      { name: 'What is AWS Config?', url: `${SITE}/aws/config/what-is-aws-config/` },
+      { name: 'What is AWS Config?', url: `${SITE}/aws-learn/config/what-is-aws-config/` },
       { name: 'How it works', url: STEP },
     ],
   });
@@ -66,7 +66,7 @@ describe('course', () => {
 
   it('lists its steps in order', () => {
     expect(ld.hasPart).toEqual([
-      { '@type': 'TechArticle', position: 1, name: 'What is AWS Config?', url: `${SITE}/aws/config/what-is-aws-config/` },
+      { '@type': 'TechArticle', position: 1, name: 'What is AWS Config?', url: `${SITE}/aws-learn/config/what-is-aws-config/` },
       { '@type': 'TechArticle', position: 2, name: 'How it works', url: STEP },
     ]);
   });
@@ -78,7 +78,7 @@ describe('techArticle', () => {
     url: STEP,
     headline: 'How AWS Config Works',
     description: 'Follow a change through AWS Config.',
-    image: `${SITE}/aws/og/config/how-it-works.png`,
+    image: `${SITE}/aws-learn/og/config/how-it-works.png`,
     dateModified: new Date('2026-09-29T00:00:00Z'),
     about: 'AWS Config',
     course: { name: 'AWS Config Tutorial for Beginners', url: OVERVIEW },

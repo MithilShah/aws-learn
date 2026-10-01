@@ -16,10 +16,10 @@ async function violations(page: Page): Promise<string[]> {
 }
 
 const PAGES = [
-  ['hub', '/aws/'],
-  ['overview', '/aws/config/'],
-  ['step', '/aws/config/how-it-works/'],
-  ['component kit', '/aws/kit/components/'],
+  ['hub', '/aws-learn/'],
+  ['overview', '/aws-learn/config/'],
+  ['step', '/aws-learn/config/how-it-works/'],
+  ['component kit', '/aws-learn/kit/components/'],
 ] as const;
 
 for (const [name, url] of PAGES) {
@@ -34,14 +34,14 @@ test.describe('404', () => {
   test.use({ expectedConsoleErrors: [/status of 404/] });
 
   test('404 page has no detectable accessibility violations', async ({ page }) => {
-    const response = await page.goto('/aws/no-such-page/');
+    const response = await page.goto('/aws-learn/no-such-page/');
     expect(response?.status()).toBe(404);
     expect(await violations(page)).toEqual([]);
   });
 });
 
 test('overview with progress (journey map states) has no violations', async ({ page }) => {
-  await page.goto('/aws/config/');
+  await page.goto('/aws-learn/config/');
   await page.evaluate(() =>
     localStorage.setItem('st-aws:config', JSON.stringify({ v: 1, done: ['what-is-aws-config', 'how-it-works'] })),
   );
@@ -51,14 +51,14 @@ test('overview with progress (journey map states) has no violations', async ({ p
 });
 
 test('kit with a tab and a stepper stage changed has no violations', async ({ page }) => {
-  await page.goto('/aws/kit/components/');
+  await page.goto('/aws-learn/kit/components/');
   await page.getByRole('tab', { name: 'Second panel' }).click();
   await page.getByRole('button', { name: 'Next' }).click();
   expect(await violations(page)).toEqual([]);
 });
 
 test('search results have no violations', async ({ page }) => {
-  await page.goto('/aws/config/remediation/');
+  await page.goto('/aws-learn/config/remediation/');
   await page.getByPlaceholder('Search the journeys').fill('configuration item');
   await expect(page.locator('.pagefind-ui__result-link').first()).toBeVisible();
   expect(await violations(page)).toEqual([]);
@@ -68,13 +68,13 @@ test.describe('mobile', () => {
   test.use({ viewport: { width: 390, height: 844 } });
 
   test('step page with the menu open has no violations', async ({ page }) => {
-    await page.goto('/aws/config/how-it-works/');
+    await page.goto('/aws-learn/config/how-it-works/');
     await page.getByRole('button', { name: 'Menu' }).click();
     expect(await violations(page)).toEqual([]);
   });
 
   test('component kit (scrolling diagram) has no violations', async ({ page }) => {
-    await page.goto('/aws/kit/components/');
+    await page.goto('/aws-learn/kit/components/');
     await expect(page.locator('[data-diagram-frame][data-scrolls]')).toHaveCount(1);
     expect(await violations(page)).toEqual([]);
   });

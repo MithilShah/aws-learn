@@ -1,9 +1,9 @@
-// The visual kit, exercised on the component gallery (/aws/kit/components/,
+// The visual kit, exercised on the component gallery (/aws-learn/kit/components/,
 // built because test:e2e sets BUILD_KIT=1) and the journey map on the overview.
 import { expect, test } from './fixtures';
 
-const KIT = '/aws/kit/components/';
-const OVERVIEW = '/aws/config/';
+const KIT = '/aws-learn/kit/components/';
+const OVERVIEW = '/aws-learn/config/';
 
 test.describe('tabs', () => {
   test('work with the mouse and the keyboard (WAI-ARIA tabs)', async ({ page }) => {
@@ -262,7 +262,7 @@ test.describe('journey map', () => {
     const cta = map(page).locator('[data-progress-continue]');
     await expect(cta).toContainText('Start here');
     await expect(cta).toContainText('Step 1: What is AWS Config?');
-    await expect(cta).toHaveAttribute('href', '/aws/config/what-is-aws-config/');
+    await expect(cta).toHaveAttribute('href', '/aws-learn/config/what-is-aws-config/');
     await expect(map(page).locator('.is-next')).toHaveCount(0);
     await expect(map(page).locator('.trail-stop')).toHaveCount(6);
   });
@@ -279,7 +279,7 @@ test.describe('journey map', () => {
     await expect(upNext.locator('[data-done-label]')).toHaveText('(up next)');
     const cta = map(page).locator('[data-progress-continue]');
     await expect(cta).toContainText('Continue where you left off');
-    await expect(cta).toHaveAttribute('href', '/aws/config/how-it-works/');
+    await expect(cta).toHaveAttribute('href', '/aws-learn/config/how-it-works/');
   });
 
   test('congratulates a reader who finished every step', async ({ page }) => {
