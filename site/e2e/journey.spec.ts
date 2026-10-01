@@ -132,8 +132,8 @@ test.describe('search', () => {
 
     const results = page.locator('.pagefind-ui__result-link');
     await expect(results.first()).toBeVisible();
-    // With a single journey the filter panel is hidden (see Search.astro).
-    await expect(page.locator('.pagefind-ui__filter-panel')).toBeHidden();
+    // With a second journey published, the "Journey" filter panel appears.
+    await expect(page.locator('.pagefind-ui__filter-panel')).toBeVisible();
     const hrefs = await results.evaluateAll((links) => links.map((a) => a.getAttribute('href') ?? ''));
     expect(hrefs.some((href) => href.startsWith('/aws-learn/config/how-it-works/'))).toBe(true);
     for (const href of hrefs) expect(href).toMatch(/^\/aws-learn\/config\//);

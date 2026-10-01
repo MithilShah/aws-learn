@@ -76,7 +76,7 @@ beforeAll(() => {
 });
 
 describe('the build', () => {
-  it('has the hub, the Config overview, six steps and the 404 page', () => {
+  it('has the hub, both journey overviews, their steps and the 404 page', () => {
     const paths = pages.map((p) => p.path).sort();
     expect(paths).toEqual(
       [
@@ -89,6 +89,13 @@ describe('the build', () => {
         '/aws-learn/config/how-it-works/',
         '/aws-learn/config/remediation/',
         '/aws-learn/config/what-is-aws-config/',
+        '/aws-learn/s3/',
+        '/aws-learn/s3/buckets-and-objects/',
+        '/aws-learn/s3/s3-vs-ebs-vs-efs/',
+        '/aws-learn/s3/security-and-access/',
+        '/aws-learn/s3/storage-classes/',
+        '/aws-learn/s3/versioning-and-lifecycle/',
+        '/aws-learn/s3/what-is-amazon-s3/',
       ].sort(),
     );
   });
@@ -248,14 +255,15 @@ describe('sitemap', () => {
 });
 
 describe('search index', () => {
-  it('indexes exactly the journey pages (overview and steps)', () => {
+  it('indexes exactly the journey pages (overview and steps) of every journey', () => {
     const entry = JSON.parse(readFileSync(join(DIST, 'pagefind', 'pagefind-entry.json'), 'utf8'));
     const indexed = Object.values(entry.languages as Record<string, { page_count: number }>).reduce(
       (sum, lang) => sum + lang.page_count,
       0,
     );
+    // Two journeys (Config and S3), each an overview plus six steps.
     const withBody = pages.filter((p) => p.root.querySelector('[data-pagefind-body]')).length;
-    expect(withBody).toBe(7);
+    expect(withBody).toBe(14);
     expect(indexed).toBe(withBody);
   });
 });

@@ -1,0 +1,135 @@
+---
+title: "What Is Amazon S3? A Beginner's Guide"
+navTitle: "What is Amazon S3?"
+description: "Amazon S3 is object storage: you store files as objects inside buckets and fetch them with a web request. See what it's for and how it's built."
+summary: "What object storage means, the problems Amazon S3 solves, and the four ideas — object, bucket, key, Region — the rest of the journey builds on."
+order: 1
+sources:
+  - title: "What Is Amazon S3?"
+    url: https://docs.aws.amazon.com/AmazonS3/latest/userguide/Welcome.html
+  - title: "Amazon S3 FAQs"
+    url: https://aws.amazon.com/s3/faqs/
+lastVerified: 2026-10-01
+---
+
+Amazon Simple Storage Service (Amazon S3) is an object storage service. You store your data as
+**objects** inside containers called **buckets**, and you read and write those objects with
+ordinary web requests. There are no disks to size, no file servers to run, and no capacity to
+reserve up front — you upload an object and it's stored, and you can store as many as you like.
+
+That last part is what people mean when they call S3 *object storage* rather than a file system.
+It's worth getting the vocabulary straight at the start, because every later step builds on it.
+
+## Object storage, not a file system
+
+On your laptop, files live in a tree of folders, and the operating system knows how to walk that
+tree. Amazon S3 works differently. Each object has a single **key** — its full name — and the
+bucket is a flat collection of those keys. There is no real folder tree underneath.
+
+<Callout type="misconception">
+The "folders" you see in the S3 console are not real directories. They're just a convenient way
+of displaying objects whose keys share a prefix. The object `photos/2026/cat.jpg` has the single
+key `photos/2026/cat.jpg` — the slashes are part of the name, not a path through folders. The
+next step, <StepLink service="s3" step="buckets-and-objects">buckets and objects</StepLink>, shows
+this in detail.
+</Callout>
+
+## The problem Amazon S3 solves
+
+Suppose you're building an app that lets people upload photos. You could attach a disk to a server
+and save files there — but then you have to keep that server running, back the disk up, grow it
+when it fills, and add more servers (and copy files between them) as traffic grows. Storage
+becomes a system you operate.
+
+Amazon S3 takes that job away. You create a bucket, upload objects to it over HTTPS, and AWS
+handles the durability, availability and scaling. S3 is designed to store data redundantly across
+at least three Availability Zones, so individual hardware failures don't lose your data. You pay
+for what you store and the requests you make, not for a fixed amount of provisioned disk.
+
+## What people use it for
+
+The AWS documentation highlights a range of uses. The tabs below walk through four common ones
+with a concrete example each.
+
+<Tabs label="Ways to use Amazon S3">
+  <TabPanel label="Store app data">
+
+  Store the files your application produces or serves — user uploads, generated documents,
+  exports. Your app reads and writes them with S3 API calls instead of managing its own storage.
+
+  *Example:* a photo-sharing app saves each uploaded image as an object and serves it back by its
+  key when someone views it.
+
+  </TabPanel>
+  <TabPanel label="Back up and archive">
+
+  Keep durable copies of data for recovery or long-term retention. Because S3 is designed for
+  very high durability, it's a common target for backups, and cheaper classes exist for archives
+  you rarely touch.
+
+  *Example:* nightly database backups are uploaded to a bucket and kept for a year, moving to a
+  cheaper archive class as they age.
+
+  </TabPanel>
+  <TabPanel label="Host a static website">
+
+  Serve HTML, CSS, JavaScript and images straight out of a bucket, with no web server to run.
+  Static sites and the asset files behind larger sites are a classic fit.
+
+  *Example:* a documentation site's built files live in a bucket and are delivered to readers
+  directly.
+
+  </TabPanel>
+  <TabPanel label="Build a data lake">
+
+  Collect large volumes of raw data in one place so analytics and machine-learning tools can read
+  it. S3 is the storage layer under many data lakes on AWS.
+
+  *Example:* clickstream logs land in a bucket as they arrive, ready to be queried later by
+  analytics services.
+
+  </TabPanel>
+</Tabs>
+
+## The four ideas this journey builds on
+
+Almost everything in Amazon S3 comes back to four words. Here's how they fit together.
+
+<Figure
+  caption="An object lives in a bucket, identified by its key, inside one AWS Region"
+  description="A large box labelled Region contains a box labelled bucket. Inside the bucket sits an object, drawn as two joined parts: the object data (the file's bytes) and its metadata (name-value pairs such as content type and last-modified date). A label points at the object showing its key, photos/2026/cat.jpg, the unique name of the object within the bucket."
+>
+  <Diagram width={680} height={200} label="A Region contains a bucket, which contains an object made of data and metadata, identified by a key">
+    <ServiceNode x={8} y={8} width={664} height={184} label="AWS Region" sublabel="e.g. us-east-1" tone="slate" />
+    <ServiceNode x={40} y={52} width={320} height={120} label="Bucket" sublabel="amzn-s3-demo-bucket" tone="violet" />
+    <ServiceNode x={72} y={96} width={120} height={60} label="Object data" sublabel="The file's bytes" tone="indigo" />
+    <ServiceNode x={208} y={96} width={120} height={60} label="Metadata" sublabel="Name-value pairs" tone="teal" />
+    <Arrow from={[360, 112]} to={[432, 112]} label="key" />
+    <ServiceNode x={432} y={88} width={216} height={48} label="photos/2026/cat.jpg" sublabel="The object's unique key" tone="amber" />
+  </Diagram>
+</Figure>
+
+- **Object** — a single stored item: the file's data plus **metadata** (name-value pairs like its
+  content type and last-modified date). Objects are the fundamental things S3 stores.
+- **Bucket** — a container for objects. You create a bucket before you can store anything, and you
+  give it a name and an AWS Region.
+- **Key** — the unique name of an object *within* its bucket. Every object has exactly one key.
+  The combination of bucket, key, and (if versioning is on) a version ID identifies an object
+  exactly.
+- **Region** — the AWS geographic location where the bucket and its objects live. You choose it
+  when you create the bucket.
+
+<Callout type="tip">
+If you remember one sentence from this step, make it this: *objects go in buckets, and each object
+is addressed by its key.* The next step pulls these apart one at a time.
+</Callout>
+
+## Key terms
+
+<KeyTerms>
+  <Term name="Amazon S3">Amazon Simple Storage Service, an object storage service where you store data as objects inside buckets and access them over the web.</Term>
+  <Term name="Object storage">A way of storing data as self-contained objects (data plus metadata) addressed by a key, rather than as files in a folder tree or blocks on a disk.</Term>
+  <Term name="Object">The fundamental entity stored in Amazon S3: the data of a file together with metadata describing it.</Term>
+  <Term name="Bucket">A container for objects in Amazon S3. You give it a name and an AWS Region when you create it.</Term>
+  <Term name="Key">The unique identifier of an object within a bucket. Every object has exactly one key.</Term>
+</KeyTerms>

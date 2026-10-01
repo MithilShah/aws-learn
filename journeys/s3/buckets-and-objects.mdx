@@ -1,0 +1,101 @@
+---
+title: "Amazon S3 Buckets and Objects Explained"
+navTitle: "Buckets & objects"
+description: "How Amazon S3 buckets, objects and keys fit together: global bucket names, one Region per bucket, and why the console's folders are only key prefixes."
+summary: "Bucket names and Regions, how a key identifies an object, and why S3's folders are shared prefixes over a flat namespace."
+order: 2
+sources:
+  - title: "What Is Amazon S3?"
+    url: https://docs.aws.amazon.com/AmazonS3/latest/userguide/Welcome.html
+  - title: "Bucket naming rules"
+    url: https://docs.aws.amazon.com/AmazonS3/latest/userguide/bucketnamingrules.html
+  - title: "Organizing objects in the Amazon S3 console using folders"
+    url: https://docs.aws.amazon.com/AmazonS3/latest/userguide/using-folders.html
+lastVerified: 2026-10-01
+---
+
+The <StepLink service="s3" step="what-is-amazon-s3">previous step</StepLink> introduced four
+words: object, bucket, key and Region. This step looks closely at how buckets and objects relate,
+and clears up the single most common beginner confusion — the "folders" in the S3 console.
+
+## Buckets: named containers in one Region
+
+Before you can store anything, you create a **bucket**. Two choices you make at creation time
+stay fixed for the life of the bucket:
+
+- **Its name.** For a general purpose bucket, the name lives in a global namespace — it must be
+  unique across *all* AWS accounts, not just yours. If someone else already has a bucket called
+  `my-bucket`, you can't create one with that name. Names also follow DNS-style rules (lowercase
+  letters, numbers, hyphens and dots, 3–63 characters).
+- **Its AWS Region.** The bucket and its objects physically live in the Region you pick. You might
+  choose one close to your users, or one that meets a data-residency requirement.
+
+<Callout type="note">
+You can't rename a bucket or move it to another Region after you create it. To "rename" a bucket
+you create a new one and copy the objects across. It's worth choosing the name and Region
+deliberately.
+</Callout>
+
+Why must names be globally unique? Because every object is reachable at a web address built from
+the bucket name, like
+`https://amzn-s3-demo-bucket.s3.us-west-2.amazonaws.com/photos/puppy.jpg`. A globally unique
+bucket name keeps that address unambiguous.
+
+## Objects and their keys
+
+An **object** is the data of a file plus its **metadata** — name-value pairs such as its content
+type and last-modified date. Every object sits in exactly one bucket and is identified by its
+**key**, the object's full name within that bucket.
+
+Put precisely: the combination of **bucket + key + version** (the version matters only once
+<StepLink service="s3" step="versioning-and-lifecycle">versioning</StepLink> is on) identifies
+one object exactly. You can picture Amazon S3 as a giant map from "bucket + key + version" to the
+bytes of the object.
+
+## The folders that aren't folders
+
+Open a bucket in the S3 console and you'll see folders you can click into. It's natural to assume
+S3 stores a directory tree. It doesn't.
+
+S3 keeps a **flat list of keys**. A key like `photos/2026/cat.jpg` is one single name — the
+slashes are ordinary characters in it. The console looks at the keys, notices that several share
+the prefix `photos/`, and *draws* a folder called `photos/` for you. The folder is a view, not a
+thing S3 stores.
+
+Try switching between the two views below. The flat list is what S3 actually holds; the folder
+view is what the console derives from it.
+
+<Figure
+  caption="The same keys, shown as the flat list S3 stores and as the console's derived folders"
+  description="An explorer for one bucket's object keys. The flat view lists five object keys exactly as stored: photos/2025/beach.jpg, photos/2026/cat.jpg, photos/2026/dog.jpg, invoices/2026/january.pdf, and readme.txt. The folder view shows the same five keys grouped by shared prefix into folders — a photos folder containing year folders 2025 and 2026, an invoices folder containing a 2026 folder, and readme.txt at the top level — with each folder marked as a prefix. Without JavaScript, both views are shown, each under its own heading."
+>
+  <KeyPrefixExplorer />
+</Figure>
+
+<Callout type="misconception">
+There are no directories inside a bucket. "Creating a folder" in the console just creates a
+zero-byte object whose key ends in `/`, so the prefix shows up even when it's empty. Deleting the
+last object under a prefix makes that "folder" disappear — because it was never anything more than
+the shared start of some keys.
+</Callout>
+
+## Why the flat model matters
+
+This isn't just trivia. Two practical consequences follow from the flat keyspace:
+
+- **Listing is by prefix.** To list "everything under `photos/2026/`", S3 matches keys that start
+  with that prefix. There's no folder to open — it's a string match over the flat list.
+- **Keys shape your data layout.** Because the key is the whole identity of an object, teams put
+  thought into key naming — dates, IDs or categories as prefixes — so that listing and lifecycle
+  rules can target the right objects. You'll see prefixes used this way in
+  <StepLink service="s3" step="versioning-and-lifecycle">versioning and lifecycle</StepLink>.
+
+## Key terms
+
+<KeyTerms>
+  <Term name="Bucket">A container for objects, created with a globally unique name and a fixed AWS Region. Neither the name nor the Region can change after creation.</Term>
+  <Term name="Object">The data of a file plus its metadata, stored in a single bucket and identified by a key.</Term>
+  <Term name="Key">The full, unique name of an object within its bucket. S3 stores keys as a flat list, not a folder tree.</Term>
+  <Term name="Prefix">The leading part of a key up to a delimiter such as '/'. Shared prefixes are what the console displays as folders.</Term>
+  <Term name="Namespace">The space of possible names. General purpose bucket names share one global namespace across all AWS accounts.</Term>
+</KeyTerms>

@@ -42,7 +42,4 @@ const isDev = import.meta.env.DEV;
      so the overrides below include .pagefind-ui to win. */
   /* Pagefind fades the placeholder to 20% opacity, too faint to read. */
   .search :global(.pagefind-ui .pagefind-ui__search-input::placeholder) { opacity: 1; color: var(--muted); }
-  /* Only one journey exists so far, so the "Journey" filter adds nothing.
-     Remove this rule once a second service journey is published. */
-  .search :global(.pagefind-ui .pagefind-ui__filter-panel) { display: none; }
 </style>

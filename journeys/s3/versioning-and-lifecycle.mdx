@@ -1,0 +1,84 @@
+---
+title: "Amazon S3 Versioning and Lifecycle Rules"
+navTitle: "Versioning & lifecycle"
+description: "How Amazon S3 versioning keeps every version of an object so you can recover deletes and overwrites, and how lifecycle rules manage versions over time."
+summary: "How versioning protects objects from accidental deletes and overwrites with version IDs and delete markers, and how lifecycle rules tidy up over time."
+order: 4
+sources:
+  - title: "Using versioning in S3 buckets"
+    url: https://docs.aws.amazon.com/AmazonS3/latest/userguide/Versioning.html
+  - title: "Managing the lifecycle of objects"
+    url: https://docs.aws.amazon.com/AmazonS3/latest/userguide/object-lifecycle-mgmt.html
+  - title: "What Is Amazon S3?"
+    url: https://docs.aws.amazon.com/AmazonS3/latest/userguide/Welcome.html
+lastVerified: 2026-10-01
+---
+
+By default, writing to a key that already exists overwrites it, and deleting a key removes it.
+**Versioning** changes that: with it on, S3 keeps every version of an object in the same bucket,
+so an overwrite or a delete can be undone. It's the main way to protect objects from mistakes.
+
+## What versioning does
+
+Turn on versioning for a bucket and S3 starts giving each object a **version ID**. From then on:
+
+- A new upload to an existing key doesn't replace the old object — it adds a new *current* version
+  and keeps the previous ones beneath it.
+- Each version is addressed by **bucket + key + version ID**, so you can read or restore any past
+  version, not just the latest.
+
+<Callout type="note">
+Once you enable versioning on a bucket you can **suspend** it, but you can't switch it fully back
+off. Suspending stops new version IDs being created, while the versions you already have stay
+put. So treat enabling versioning as a decision you keep.
+</Callout>
+
+## Deletes don't delete: the delete marker
+
+The part that surprises people: with versioning on, a plain delete *doesn't remove any data*.
+Instead S3 adds a **delete marker** as the new current version. A `GET` on the key then behaves as
+"not found" — but every real version is still there underneath the marker. Remove the delete
+marker and the object comes back.
+
+Step through the story below: upload an object, overwrite it, delete it, then recover it. Watch
+the version stack on the right and whether a `GET` would succeed.
+
+<Figure
+  caption="An object uploaded, overwritten, deleted and recovered on a versioning-enabled bucket"
+  description="A four-step timeline for one object key. Step 1: a PUT stores version v1, which is current and readable. Step 2: another PUT stores version v2; v1 is kept beneath it, and a GET returns v2. Step 3: a DELETE adds a delete marker as the current version, so a GET returns not found, but versions v1 and v2 are retained underneath. Step 4: removing the delete marker makes v2 current again, so a GET returns the object once more — the data was never discarded. Without JavaScript, every step is shown with the version stack it produces."
+>
+  <VersionTimeline />
+</Figure>
+
+<Callout type="tip">
+This is why versioning is the standard defence against the two most common storage accidents:
+overwriting a good file with a bad one, and deleting something you still needed. With versioning
+on, both are recoverable.
+</Callout>
+
+## Lifecycle rules and versions
+
+Keeping every version forever would cost more and more over time. **Lifecycle rules** — the same
+mechanism you met in <StepLink service="s3" step="storage-classes">storage classes</StepLink> —
+clean up after versioning:
+
+- **Transition** older *noncurrent* versions to cheaper classes after a set time.
+- **Expire** noncurrent versions, or clean up expired delete markers, once they're old enough.
+
+So the two features pair naturally: versioning protects against mistakes by keeping history, and
+lifecycle rules keep that history from growing without bound.
+
+<Callout type="misconception">
+Versioning on its own never saves money — it only ever adds versions. If you turn it on, plan a
+lifecycle rule to expire or downgrade old versions, or storage costs will creep up as every
+overwrite leaves another version behind.
+</Callout>
+
+## Key terms
+
+<KeyTerms>
+  <Term name="Versioning">A bucket setting that keeps multiple versions of each object, so overwrites and deletes can be undone. Once enabled it can be suspended but not fully disabled.</Term>
+  <Term name="Version ID">The identifier S3 assigns to each version of an object. Bucket + key + version ID addresses one specific version.</Term>
+  <Term name="Delete marker">The placeholder S3 adds as the current version when you delete a key in a versioned bucket. It hides the object without removing any version.</Term>
+  <Term name="Noncurrent version">Any version of an object that is no longer the current one. Lifecycle rules can transition or expire these.</Term>
+</KeyTerms>

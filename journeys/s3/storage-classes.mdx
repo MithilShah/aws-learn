@@ -1,0 +1,117 @@
+---
+title: "Amazon S3 Storage Classes Compared"
+navTitle: "Storage classes"
+description: "Amazon S3 storage classes trade cost against how fast and how often you read data. Compare Standard, Intelligent-Tiering, Standard-IA and the Glacier classes."
+summary: "What the S3 storage classes are, how they trade cost against access speed and frequency, and how lifecycle rules move objects between them."
+order: 3
+sources:
+  - title: "Understanding and managing Amazon S3 storage classes"
+    url: https://docs.aws.amazon.com/AmazonS3/latest/userguide/storage-class-intro.html
+  - title: "Amazon S3 Storage Classes"
+    url: https://aws.amazon.com/s3/storage-classes/
+  - title: "Managing the lifecycle of objects"
+    url: https://docs.aws.amazon.com/AmazonS3/latest/userguide/object-lifecycle-mgmt.html
+lastVerified: 2026-10-01
+---
+
+Not all data is read equally often. A website's logo is served constantly; last year's tax
+records almost never. Amazon S3 lets you store each object in a **storage class** suited to how
+you use it, trading cost against how quickly and how often you need the data back.
+
+## One durability, different availability and cost
+
+Here's the key thing to understand first: every S3 storage class is designed for the same very
+high **durability** — 99.999999999% (eleven nines), meaning S3 is built not to lose your objects.
+What changes between classes is **availability**, **retrieval speed** and **price**, not whether
+your data is safe.
+
+Most classes store your data redundantly across at least three Availability Zones. The one
+exception is **S3 One Zone-IA**, which uses a single Availability Zone to cost less — so it's
+designed for the same durability within that zone, but the data is lost if that one zone is
+destroyed. That's the trade you're making when you choose it.
+
+<Callout type="note">
+Durability (will my data survive?) and availability (can I get to it right now?) are different
+promises. All S3 classes aim for the same eleven-nines durability. One Zone-IA lowers cost by
+lowering resilience to the loss of a whole Availability Zone, not by lowering durability within
+one.
+</Callout>
+
+## The classes, from hottest to coldest
+
+The general purpose storage classes line up roughly by how "warm" the data is:
+
+- **S3 Standard** — frequently accessed data, millisecond access. The default.
+- **S3 Intelligent-Tiering** — for data whose access pattern you don't know or that changes. S3
+  automatically moves each object between frequent and infrequent tiers based on use, so you don't
+  have to guess.
+- **S3 Standard-IA** (Infrequent Access) — data you read rarely but need instantly when you do,
+  stored across multiple Availability Zones.
+- **S3 One Zone-IA** — like Standard-IA but in a single Availability Zone, for a lower price when
+  you can tolerate that reduced resilience (for example, data you could regenerate).
+- **S3 Glacier Instant Retrieval** — archive data that's almost never read but must come back in
+  milliseconds when it is.
+- **S3 Glacier Flexible Retrieval** — archive data where waiting minutes to hours for retrieval is
+  acceptable.
+- **S3 Glacier Deep Archive** — the lowest-cost class, for long-term archives you retrieve in
+  hours.
+
+## Try it: pick a class for your data
+
+Describe how your data is used and see which class fits. The recommendation follows the same
+beginner-level guidance as the list above.
+
+<Figure
+  caption="Choose a storage class from how your data is accessed"
+  description="A storage-class picker with three inputs: how often the data is read (often, rarely, archived, or unknown/changing), how fast a read must return (instantly in milliseconds, or minutes to hours is fine), and a checkbox for whether a single Availability Zone is acceptable. It recommends one storage class with a reason. For example, frequently accessed data maps to S3 Standard; an unknown pattern to S3 Intelligent-Tiering; rarely accessed data needing instant reads to S3 Standard-IA, or S3 One Zone-IA when a single AZ is acceptable; instant-retrieval archives to S3 Glacier Instant Retrieval; and delay-tolerant archives to S3 Glacier Deep Archive. Without JavaScript, a table lists worked scenarios and the class each points to."
+>
+  <StorageClassMatrix />
+</Figure>
+
+## Moving objects between classes with lifecycle rules
+
+You rarely want to pick a class once and leave it forever. Data cools down: today's active log
+file is next quarter's archive. A **lifecycle rule** automates that journey — it tells S3 to
+**transition** objects to a cheaper class, or **expire** (delete) them, on a schedule you set,
+usually matched to a key prefix.
+
+<Figure
+  caption="A log file cooling down through storage classes over time"
+  description="A four-stage timeline for one object, a log file. Stage 1, day 0: created in S3 Standard while it is actively queried. Stage 2, day 30: a lifecycle rule transitions it to S3 Standard-IA as access drops off. Stage 3, day 90: it transitions to S3 Glacier Flexible Retrieval for cheaper archival. Stage 4, day 365: a lifecycle expiration rule deletes it. Each stage highlights the class the object is in at that time."
+>
+  <Stepper
+    label="A log file's lifecycle"
+    stages={[
+      { title: 'Day 0 — created.', text: 'A new log file lands in S3 Standard, where it is queried often.' },
+      { title: 'Day 30 — transition.', text: 'A lifecycle rule moves it to S3 Standard-IA as reads drop off.' },
+      { title: 'Day 90 — archive.', text: 'It transitions to S3 Glacier Flexible Retrieval for cheap long-term storage.' },
+      { title: 'Day 365 — expire.', text: 'A lifecycle expiration rule deletes it automatically.' },
+    ]}
+  >
+    <Diagram width={700} height={120} label="A log file moving from S3 Standard to Standard-IA to Glacier Flexible Retrieval, then expired">
+      <ServiceNode x={6} y={34} width={150} label="S3 Standard" sublabel="Day 0 · hot" tone="violet" stage="1" />
+      <Arrow from={[156, 62]} to={[212, 62]} label="30d" stage="2" />
+      <ServiceNode x={212} y={34} width={150} label="S3 Standard-IA" sublabel="Day 30 · cooler" tone="indigo" stage="2" />
+      <Arrow from={[362, 62]} to={[418, 62]} label="90d" stage="3" />
+      <ServiceNode x={418} y={34} width={170} label="Glacier Flexible" sublabel="Day 90 · cold" tone="teal" stage="3" />
+      <Arrow from={[588, 62]} to={[644, 62]} label="365d" stageFrom={4} dashed />
+      <ServiceNode x={612} y={34} width={82} label="Expired" sublabel="Deleted" tone="slate" stage="4" />
+    </Diagram>
+  </Stepper>
+</Figure>
+
+<Callout type="tip">
+Transitions generally move data one way — from warmer to cooler classes — so model your lifecycle
+rules around how data actually ages. Pair them with sensible key prefixes (for example
+`logs/2026/…`) so a rule can target exactly the objects you mean.
+</Callout>
+
+## Key terms
+
+<KeyTerms>
+  <Term name="Storage class">A storage tier for an object that trades cost against availability and retrieval speed. All classes aim for the same eleven-nines durability.</Term>
+  <Term name="Durability">How safe stored data is from loss. Every S3 storage class is designed for 99.999999999% (eleven nines) durability.</Term>
+  <Term name="Availability">How readily you can retrieve data when you ask for it — distinct from durability, and where classes differ.</Term>
+  <Term name="S3 Intelligent-Tiering">A class that automatically moves objects between access tiers based on usage, for data with unknown or changing access patterns.</Term>
+  <Term name="Lifecycle rule">A rule that automatically transitions objects to another storage class or expires (deletes) them on a schedule.</Term>
+</KeyTerms>

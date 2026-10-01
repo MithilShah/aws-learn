@@ -1,0 +1,107 @@
+---
+// Walks a single object key through a versioning-enabled bucket: upload,
+// overwrite, delete, recover. Without JavaScript it lists every step with the
+// resulting version stack after each, so the content is complete for search
+// engines and readers without JS. With JavaScript (src/scripts/version-timeline.ts)
+// Back/Next step through one operation at a time and show the live stack,
+// with each change announced to screen readers.
+//   <VersionTimeline />  (self-contained; data in lib/version-timeline-data)
+import { isReadable, run, type TimelineState } from '../../lib/version-timeline';
+import { steps } from '../../lib/version-timeline-data';
+
+// Pre-compute the stack after each step, so the static view is complete and
+// the script has nothing to recompute.
+const states: TimelineState[] = steps.map((_, i) => run(steps.slice(0, i + 1).map((s) => s.op)));
+
+const stackLabel = (v: { isDeleteMarker: boolean; versionId: string; label?: string }) =>
+  v.isDeleteMarker ? `${v.versionId} · delete marker` : `${v.versionId} · ${v.label}`;
+---
+<div class="vtl" data-vtl>
+  <noscript>
+    <p class="vtl-note">Each step with the version stack it produces. With JavaScript, you step through them one at a time.</p>
+  </noscript>
+
+  <div class="vtl-controls" data-vtl-controls hidden>
+    <button type="button" class="vtl-btn" data-vtl-prev><span aria-hidden="true">←</span> Back</button>
+    <span class="vtl-count" data-vtl-count aria-hidden="true"></span>
+    <button type="button" class="vtl-btn" data-vtl-next>Next <span aria-hidden="true">→</span></button>
+  </div>
+
+  <ol class="vtl-steps">
+    {steps.map((step, i) => {
+      const state = states[i];
+      const readable = isReadable(state);
+      return (
+        <li class="vtl-step" data-vtl-step={i + 1}>
+          <p class="vtl-step-title"><span class="vtl-step-n">Step {i + 1}.</span> {step.title}</p>
+          <p class="vtl-step-text">{step.text}</p>
+          <div class="vtl-stack" data-vtl-stack>
+            <p class="vtl-stack-head">
+              Version stack <span class={`vtl-readable ${readable ? 'is-yes' : 'is-no'}`}>GET: {readable ? 'returns the object' : 'not found'}</span>
+            </p>
+            <ul>
+              {state.versions.map((v, vi) => (
+                <li class={`vtl-ver ${v.isDeleteMarker ? 'is-marker' : ''} ${vi === 0 ? 'is-current' : ''}`}>
+                  <code>{stackLabel(v)}</code>
+                  {vi === 0 && <span class="vtl-current-tag">current</span>}
+                </li>
+              ))}
+            </ul>
+          </div>
+        </li>
+      );
+    })}
+  </ol>
+
+  <p class="visually-hidden" aria-live="polite" data-vtl-live></p>
+</div>
+
+<script>
+  import '../../scripts/version-timeline';
+</script>
+
+<style>
+  .vtl { margin: 24px 0; }
+  .vtl-note { font-size: 14.5px; color: var(--ink-3); margin: 0 0 10px; }
+
+  .vtl-controls { display: flex; align-items: center; justify-content: center; gap: 14px; margin-bottom: 14px; }
+  .vtl-controls[hidden] { display: none; }
+  .vtl-count { min-width: 7em; text-align: center; font-size: 14px; font-weight: 600; color: var(--muted); }
+  .vtl-btn {
+    padding: 8px 16px;
+    border: 1px solid var(--w-violet);
+    border-radius: 8px;
+    background: var(--w-violet);
+    color: #fff;
+    font: 700 14px/1 var(--font-sans);
+    cursor: pointer;
+  }
+  .vtl-btn:hover { background: var(--w-indigo); border-color: var(--w-indigo); }
+  .vtl-btn[aria-disabled='true'] { background: var(--surface); border-color: var(--border); color: var(--muted); cursor: default; }
+
+  .vtl-steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 14px; }
+  .vtl-step { padding: 14px 16px; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); }
+  .vtl-step-title { margin: 0; font-size: 15.5px; font-weight: 700; color: var(--ink); }
+  .vtl-step-n { color: var(--w-violet); }
+  .vtl-step-text { margin: 6px 0 10px; font-size: 14.5px; color: var(--ink-3); }
+  .vtl-step[hidden] { display: none; }
+
+  .vtl-stack-head { margin: 0 0 8px; font-size: 13px; font-weight: 700; color: var(--ink-2); }
+  .vtl-readable { font-weight: 600; margin-left: 8px; }
+  .vtl-readable.is-yes { color: var(--c-compliant-fg); }
+  .vtl-readable.is-no { color: var(--c-noncompliant-fg); }
+  .vtl-stack ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+  .vtl-ver {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 10px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: #fff;
+  }
+  .vtl-ver code { font-size: 13px; color: var(--ink); }
+  .vtl-ver.is-current { border-color: var(--w-violet); }
+  .vtl-ver.is-marker code { color: var(--muted); }
+  .vtl-current-tag { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em; color: var(--w-violet); }
+</style>

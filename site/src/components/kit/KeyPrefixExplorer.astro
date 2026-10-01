@@ -1,0 +1,113 @@
+---
+// Shows one bucket's object keys two ways: the flat list S3 actually stores,
+// and the "folder" tree the console derives from shared key prefixes. Both
+// views are rendered in the HTML, so the content is complete without
+// JavaScript (the flat list is shown, the tree is below it under its own
+// heading). With JavaScript (src/scripts/key-prefix.ts) a toggle switches
+// between the two, making the point that the folders are just a view.
+//   <KeyPrefixExplorer />  (self-contained; data in lib/key-prefix-data)
+import { buildPrefixTree, countObjects, type PrefixNode } from '../../lib/key-prefix';
+import { sampleKeys } from '../../lib/key-prefix-data';
+
+const tree = buildPrefixTree(sampleKeys);
+const objectCount = countObjects(sampleKeys);
+
+// Flatten the tree to rows with a depth, so the static markup needs no
+// recursive component (MDX-friendly) while still showing the nesting.
+interface Row {
+  node: PrefixNode;
+  depth: number;
+}
+function flatten(nodes: PrefixNode[], depth = 0, acc: Row[] = []): Row[] {
+  for (const node of nodes) {
+    acc.push({ node, depth });
+    if (node.children.length) flatten(node.children, depth + 1, acc);
+  }
+  return acc;
+}
+const rows = flatten(tree);
+---
+<div class="kpe" data-kpe>
+  <div class="kpe-toggle" data-kpe-toggle hidden role="group" aria-label="How to view the keys">
+    <button type="button" class="kpe-tab" data-kpe-view="flat" aria-pressed="true">Flat keys</button>
+    <button type="button" class="kpe-tab" data-kpe-view="tree" aria-pressed="false">Folder view</button>
+  </div>
+
+  <div class="kpe-pane" data-kpe-pane="flat">
+    <p class="kpe-head">The {objectCount} object keys in the bucket, as S3 stores them — one flat list:</p>
+    <ul class="kpe-flat">
+      {sampleKeys.map((key) => (
+        <li><code>{key}</code></li>
+      ))}
+    </ul>
+  </div>
+
+  <div class="kpe-pane" data-kpe-pane="tree">
+    <p class="kpe-head">The same keys as the console shows them, folding shared prefixes into folders:</p>
+    <ul class="kpe-tree">
+      {rows.map(({ node, depth }) => (
+        <li class={`kpe-row ${node.isPrefix ? 'is-folder' : 'is-object'}`} style={`--depth:${depth}`}>
+          <span class="kpe-icon" aria-hidden="true">{node.isPrefix ? '📁' : '📄'}</span>
+          <code>{node.isPrefix ? `${node.name}/` : node.name}</code>
+          {node.isPrefix && <span class="kpe-tag">prefix</span>}
+        </li>
+      ))}
+    </ul>
+  </div>
+</div>
+
+<script>
+  import '../../scripts/key-prefix';
+</script>
+
+<style>
+  .kpe { margin: 20px 0; }
+  .kpe-toggle { display: flex; gap: 8px; margin-bottom: 14px; }
+  .kpe-toggle[hidden] { display: none; }
+  .kpe-tab {
+    padding: 7px 14px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: #fff;
+    font: 600 14px/1.2 var(--font-sans);
+    color: var(--ink-2);
+    cursor: pointer;
+  }
+  .kpe-tab:hover { border-color: var(--w-violet); color: var(--w-violet); }
+  .kpe-tab[aria-pressed='true'] { background: var(--w-violet); border-color: var(--w-violet); color: #fff; }
+
+  .kpe-head { margin: 0 0 10px; font-size: 14.5px; color: var(--ink-3); }
+  .kpe-flat { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+  .kpe-flat li {
+    padding: 7px 11px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--surface);
+  }
+  .kpe-flat code { font-size: 13.5px; color: var(--ink); }
+
+  .kpe-tree { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+  .kpe-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 5px 10px;
+    padding-left: calc(10px + var(--depth, 0) * 22px);
+    border: 1px solid transparent;
+    border-radius: 8px;
+  }
+  .kpe-row.is-folder { background: var(--surface); border-color: var(--border); font-weight: 600; }
+  .kpe-row code { font-size: 13.5px; color: var(--ink); }
+  .kpe-icon { font-size: 14px; }
+  .kpe-tag {
+    font-size: 11.5px;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    color: var(--w-violet);
+  }
+
+  /* Static (no-JS): show both panes, each under its own explanatory heading.
+     Enhanced: the script hides the inactive pane and reveals the toggle. */
+  .kpe:global(.is-enhanced) .kpe-pane[hidden] { display: none; }
+</style>

@@ -1,0 +1,102 @@
+---
+title: "Amazon S3 vs EBS vs EFS"
+navTitle: "S3 vs EBS vs EFS"
+description: "Amazon S3, EBS and EFS are object, block and file storage. Learn which to use for what — serving files, a database disk, or a shared file system."
+summary: "How object storage (S3), block storage (EBS) and file storage (EFS) differ, and which workload fits each."
+order: 6
+sources:
+  - title: "What Is Amazon S3?"
+    url: https://docs.aws.amazon.com/AmazonS3/latest/userguide/Welcome.html
+  - title: "What is Amazon Elastic Block Store?"
+    url: https://docs.aws.amazon.com/ebs/latest/userguide/what-is-ebs.html
+  - title: "What is Amazon Elastic File System?"
+    url: https://docs.aws.amazon.com/efs/latest/ug/whatisefs.html
+lastVerified: 2026-10-01
+---
+
+Once you know what Amazon S3 is, the next question is usually *when not to use it*. AWS has three
+core storage services that beginners mix up, because they solve different problems: **Amazon S3**,
+**Amazon EBS** and **Amazon EFS**. The quickest way to tell them apart is the *shape* of storage
+each one offers.
+
+- **Amazon S3** — *object* storage. You store whole files as objects and fetch them by key over
+  the web, from anywhere. No server to attach to.
+- **Amazon EBS** (Elastic Block Store) — *block* storage. A virtual disk you attach to a single
+  EC2 instance, format with a file system, and use like a local hard drive.
+- **Amazon EFS** (Elastic File System) — *file* storage. A managed file system that many EC2
+  instances can mount at the same time and share, across Availability Zones.
+
+## Object, block and file — what's the difference?
+
+The three "shapes" aren't AWS jargon; they're the three classic ways to present storage:
+
+- **Object** means each item is a self-contained blob plus metadata, addressed by a key through an
+  API. Great for serving and storing lots of independent files; not something you "mount" as a
+  disk.
+- **Block** means raw fixed-size blocks that an operating system formats and treats as a drive.
+  Low latency, written in place — ideal for a database or a boot disk — but attached to one
+  instance at a time.
+- **File** means a shared file system with directories and POSIX semantics, mounted over the
+  network by many clients at once. Ideal when several servers need to read and write the same
+  files.
+
+## Which service answers this?
+
+Try sorting these workloads yourself. For each one, pick the service that fits — then check the
+explanation.
+
+<Figure
+  caption="Assign each workload to the storage service that fits it"
+  description="A sorting exercise. Each of six workloads can be assigned to Amazon S3, Amazon EBS or Amazon EFS, and the exercise keeps score. The workloads cover: a web-served media library (Amazon S3), a low-latency database disk on one EC2 instance (Amazon EBS), a shared file system many Linux servers mount at once (Amazon EFS), durable low-cost backups and archives (Amazon S3), a boot disk for a single EC2 instance (Amazon EBS), and shared uploaded files read and written by several app servers (Amazon EFS). Without JavaScript, each workload is shown with the service that fits it and why."
+>
+  <StorageSorter />
+</Figure>
+
+## A side-by-side comparison
+
+| | Amazon S3 | Amazon EBS | Amazon EFS |
+|---|---|---|---|
+| **Storage type** | Object | Block | File |
+| **How you reach it** | API over the web, from anywhere | Attached to one EC2 instance | Mounted by many instances at once |
+| **Scope** | Regional, accessed globally | A single Availability Zone | Across Availability Zones |
+| **Good for** | Serving files, backups, archives, data lakes | Database disks, boot volumes | Shared file systems for a fleet |
+| **Not for** | Low-latency disk I/O for a running OS | Sharing one disk across many instances | Serving objects to the public web |
+
+## How they work together
+
+These aren't rivals you choose once — a real application often uses all three. A web app might run
+on EC2 instances with **EBS** boot volumes, share user-uploaded working files across those
+instances through **EFS**, and store finished images, backups and logs durably in **S3**. The
+skill is matching each kind of data to the storage shape that fits it.
+
+<Callout type="misconception">
+"S3 is just AWS's hard drive" is the trap. S3 is *object* storage reached by API — you can't
+boot an operating system off it or mount it as a disk the way you would an EBS volume. When you
+need a disk for a running instance, that's EBS; when you need a shared file system, that's EFS.
+</Callout>
+
+## Where to go next
+
+That completes the journey. You've seen what Amazon S3 is, how buckets and objects and keys fit
+together, how storage classes trade cost against access, how S3 keeps data private and encrypted,
+how versioning and lifecycle rules protect and tidy your objects, and how S3 compares with EBS
+and EFS.
+
+Good next steps, straight from the AWS documentation:
+
+- Create your first bucket and upload an object, then find it by its key — the model from
+  <StepLink service="s3" step="buckets-and-objects">buckets and objects</StepLink>.
+- Turn on versioning on a test bucket and watch a delete become a delete marker you can undo, from
+  <StepLink service="s3" step="versioning-and-lifecycle">versioning and lifecycle</StepLink>.
+- Add a lifecycle rule to transition objects to a cheaper class as they age, from
+  <StepLink service="s3" step="storage-classes">storage classes</StepLink>.
+
+## Key terms
+
+<KeyTerms>
+  <Term name="Object storage">Storage where each item is a self-contained object addressed by a key through an API. Amazon S3 is object storage.</Term>
+  <Term name="Block storage">Storage presented as raw blocks that an operating system formats and uses as a disk. Amazon EBS is block storage attached to one EC2 instance.</Term>
+  <Term name="File storage">A shared file system with directories, mounted over the network by many clients at once. Amazon EFS is file storage.</Term>
+  <Term name="Amazon EBS">Amazon Elastic Block Store: block-storage volumes attached to a single EC2 instance in one Availability Zone.</Term>
+  <Term name="Amazon EFS">Amazon Elastic File System: a managed file system that many EC2 instances can mount concurrently across Availability Zones.</Term>
+</KeyTerms>

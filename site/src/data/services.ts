@@ -12,4 +12,5 @@ export interface Service {
 
 export const SERVICES: readonly Service[] = [
   { id: 'config', name: 'AWS Config' },
+  { id: 's3', name: 'Amazon S3' },
 ];

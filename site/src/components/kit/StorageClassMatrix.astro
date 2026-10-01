@@ -1,0 +1,110 @@
+---
+// Recommends an Amazon S3 storage class from an access pattern. Without
+// JavaScript it shows a table of worked scenarios (each access pattern with
+// the class it points to and why), so the content is complete for search
+// engines and readers without JS. With JavaScript (src/scripts/storage-class.ts)
+// it becomes a picker: choose how often the data is read, how fast it must
+// come back, and whether one AZ is acceptable, and see the recommended class.
+//   <StorageClassMatrix />  (self-contained; data in lib/storage-class-data)
+import { CLASSES, recommend } from '../../lib/storage-class';
+import { accessOptions, retrievalOptions, scenarios } from '../../lib/storage-class-data';
+---
+<div class="scm" data-scm>
+  <noscript>
+    <p class="scm-note">Worked scenarios and the class each points to. With JavaScript, you set the inputs yourself.</p>
+  </noscript>
+
+  {/* Interactive picker, revealed by the script. */}
+  <div class="scm-ui" data-scm-ui hidden>
+    <div class="scm-controls">
+      <label>How often is it read?
+        <select data-scm-access>
+          {accessOptions.map((o) => <option value={o.value}>{o.label}</option>)}
+        </select>
+      </label>
+      <label>How fast must a read return?
+        <select data-scm-retrieval>
+          {retrievalOptions.map((o) => <option value={o.value}>{o.label}</option>)}
+        </select>
+      </label>
+      <label class="scm-check">
+        <input type="checkbox" data-scm-onezone />
+        One Availability Zone is acceptable
+      </label>
+    </div>
+    <p class="scm-result">
+      Recommended: <strong data-scm-class></strong>
+      <span class="scm-reason" data-scm-reason></span>
+    </p>
+    <p class="visually-hidden" aria-live="polite" data-scm-live></p>
+  </div>
+
+  {/* Static fallback: worked scenarios. */}
+  <table class="scm-table" data-scm-table>
+    <caption class="visually-hidden">Example access patterns and the Amazon S3 storage class each points to</caption>
+    <thead>
+      <tr>
+        <th scope="col">Scenario</th>
+        <th scope="col">Recommended class</th>
+        <th scope="col">Why</th>
+      </tr>
+    </thead>
+    <tbody>
+      {scenarios.map((s) => {
+        const { classId, reason } = recommend(s.choice);
+        return (
+          <tr>
+            <th scope="row">{s.label}</th>
+            <td>{CLASSES[classId].name}</td>
+            <td>{reason}</td>
+          </tr>
+        );
+      })}
+    </tbody>
+  </table>
+</div>
+
+<script>
+  import '../../scripts/storage-class';
+</script>
+
+<style>
+  .scm { margin: 24px 0; }
+  .scm-note { font-size: 14.5px; color: var(--ink-3); margin: 0 0 10px; }
+  .scm-ui {
+    padding: 16px 18px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: var(--surface);
+    margin-bottom: 20px;
+  }
+  .scm-controls { display: flex; flex-wrap: wrap; gap: 14px; align-items: flex-end; }
+  .scm-controls label {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--ink-2);
+  }
+  .scm-controls select {
+    padding: 7px 10px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font: 400 14.5px/1.3 var(--font-sans);
+    background: #fff;
+    color: var(--ink);
+  }
+  .scm-check { flex-direction: row !important; align-items: center; gap: 8px !important; font-weight: 600 !important; }
+  .scm-result { margin: 14px 0 0; font-size: 15.5px; }
+  .scm-result strong { color: var(--w-violet); }
+  .scm-reason { display: block; margin-top: 6px; font-size: 14.5px; color: var(--ink-3); }
+
+  .scm-table { width: 100%; border-collapse: collapse; font-size: 14.5px; }
+  .scm-table th,
+  .scm-table td { border: 1px solid var(--border); padding: 8px 10px; text-align: left; vertical-align: top; }
+  .scm-table thead th { background: var(--surface); font-size: 13.5px; }
+  .scm-table th[scope='row'] { font-weight: 600; }
+  /* The script hides the full table once the picker is live. */
+  .scm-table[hidden] { display: none; }
+</style>

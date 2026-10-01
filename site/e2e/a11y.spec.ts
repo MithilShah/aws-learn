@@ -53,7 +53,8 @@ test('overview with progress (journey map states) has no violations', async ({ p
 test('kit with a tab and a stepper stage changed has no violations', async ({ page }) => {
   await page.goto('/aws-learn/kit/components/');
   await page.getByRole('tab', { name: 'Second panel' }).click();
-  await page.getByRole('button', { name: 'Next' }).click();
+  // Scope to the Stepper: other components (e.g. VersionTimeline) also have a Next button.
+  await page.getByRole('group', { name: 'Example walkthrough' }).getByRole('button', { name: 'Next' }).click();
   expect(await violations(page)).toEqual([]);
 });
 

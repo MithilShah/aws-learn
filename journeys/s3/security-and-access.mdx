@@ -1,0 +1,135 @@
+---
+title: "Amazon S3 Security: Access and Encryption"
+navTitle: "Security & access"
+description: "How Amazon S3 keeps data private by default: Block Public Access, bucket policies and IAM, ACLs disabled by default, and default SSE-S3 encryption."
+summary: "Why S3 buckets are private by default, how Block Public Access and policies control access, and how objects are encrypted at rest."
+order: 5
+sources:
+  - title: "Blocking public access to your Amazon S3 storage"
+    url: https://docs.aws.amazon.com/AmazonS3/latest/userguide/access-control-block-public-access.html
+  - title: "Access control best practices"
+    url: https://docs.aws.amazon.com/AmazonS3/latest/userguide/access-control-best-practices.html
+  - title: "Protecting data with server-side encryption"
+    url: https://docs.aws.amazon.com/AmazonS3/latest/userguide/serv-side-encryption.html
+  - title: "Security best practices for Amazon S3"
+    url: https://docs.aws.amazon.com/AmazonS3/latest/userguide/security-best-practices.html
+lastVerified: 2026-10-01
+---
+
+Most S3 security incidents you read about come down to one thing: a bucket that was accidentally
+made public. Amazon S3's defaults are built to prevent exactly that. This step explains who can
+reach your data, and how it's protected once stored.
+
+## Private by default
+
+A new bucket and its objects are **private**. Nothing is readable by the public, and no other AWS
+account can touch it, until you explicitly grant access. On top of that, every new bucket has two
+protective defaults turned on:
+
+- **Block Public Access** is enabled, which overrides any setting that would otherwise make the
+  bucket or its objects public.
+- **ACLs are disabled** (Object Ownership is set to *bucket owner enforced*), so access is
+  controlled by policies rather than per-object access control lists.
+
+<Callout type="note">
+These are account- and bucket-level defaults on new buckets. You *can* turn Block Public Access
+off to host a public static website, but it's a deliberate action — S3 won't let a stray policy
+quietly expose a bucket while the block is on.
+</Callout>
+
+## How a request is decided
+
+When someone makes a request to an object, S3 doesn't just check one setting — it works through
+several. The walkthrough below follows a request to a private bucket and shows where it's stopped.
+
+<Figure
+  caption="A request to a private bucket, stopped at the first gate that denies it"
+  description="A four-stage flow for an incoming request to an object. Stage 1: a request arrives for an object in a private bucket. Stage 2: Block Public Access is evaluated first; because it is on, any public access is refused outright. Stage 3: for a non-public request, S3 evaluates the applicable bucket policy and IAM policies. Stage 4: with no policy granting access, the default is deny, so the request is refused. The point is that access must be explicitly granted; the default at every gate is to deny."
+>
+  <Stepper
+    label="How S3 decides a request"
+    stages={[
+      { title: 'A request arrives.', text: 'Someone tries to read an object in a private bucket.' },
+      { title: 'Block Public Access checks first.', text: 'It is on, so any public access is refused before anything else is considered.' },
+      { title: 'Policies are evaluated.', text: 'For a non-public request, S3 checks the bucket policy and the caller\u2019s IAM policy.' },
+      { title: 'No grant means deny.', text: 'With nothing explicitly allowing it, the default is deny and the request is refused.' },
+    ]}
+  >
+    <Diagram width={700} height={130} label="A request passing through Block Public Access, then policy evaluation, ending in a default deny">
+      <ServiceNode x={6} y={40} width={140} label="Request" sublabel="Read an object" tone="amber" stage="1" />
+      <Arrow from={[146, 68]} to={[202, 68]} label="arrives" stage="2" />
+      <ServiceNode x={202} y={40} width={170} label="Block Public Access" sublabel="On — blocks public" tone="violet" stage="2" />
+      <Arrow from={[372, 68]} to={[428, 68]} label="then" stage="3" />
+      <ServiceNode x={428} y={40} width={150} label="Policies" sublabel="Bucket + IAM" tone="indigo" stage="3" />
+      <Arrow from={[578, 68]} to={[634, 68]} label="no grant" stageFrom={4} dashed />
+      <ServiceNode x={612} y={40} width={82} label="Deny" sublabel="Default" tone="red" stage="4" />
+    </Diagram>
+  </Stepper>
+</Figure>
+
+## The ways you grant access
+
+When you *do* want to allow access, S3 gives you a few tools. For beginners, the first two matter
+most:
+
+- **IAM policies** attach to a user or role and say what that identity may do — across S3 and
+  other services. Use these to grant *your own* principals access.
+- **Bucket policies** attach to the bucket and say who may do what to it — including principals in
+  other accounts. Use these for bucket-wide rules and cross-account access.
+- **ACLs** are an older, per-object mechanism. They're disabled by default on new buckets and AWS
+  recommends leaving them off, using policies instead.
+- **S3 Access Points** provide named, policy-scoped entry points for shared buckets — useful at
+  scale, beyond this beginner journey.
+
+<Callout type="misconception">
+"I made the object public with an ACL, why is it still blocked?" Because Block Public Access
+overrides it. With the modern defaults (ACLs disabled, Block Public Access on), ACLs don't grant
+public access at all — policies are how you control access, and public access takes a deliberate
+change.
+</Callout>
+
+## Encryption at rest
+
+Access control decides *who* can read an object. Encryption protects the bytes *at rest*, so the
+stored data isn't readable without the key. S3 applies **server-side encryption with S3-managed
+keys (SSE-S3)** to every new object automatically, at no extra cost — you get baseline encryption
+without doing anything. You can choose a different option per bucket or per request:
+
+<Tabs label="Server-side encryption options">
+  <TabPanel label="SSE-S3 (default)">
+
+  **Server-side encryption with Amazon S3 managed keys.** S3 creates, manages and rotates the keys
+  for you. This is the base level applied to all new objects automatically — the simplest option,
+  and enough for many workloads.
+
+  </TabPanel>
+  <TabPanel label="SSE-KMS">
+
+  **Server-side encryption with AWS KMS keys.** Encryption keys are managed in AWS Key Management
+  Service, which adds an audit trail of key use and fine-grained control over who can use the key.
+  Choose this when you need that extra control or logging.
+
+  </TabPanel>
+  <TabPanel label="SSE-C">
+
+  **Server-side encryption with customer-provided keys.** You supply the encryption key with each
+  request, and manage it entirely yourself. S3 uses it to encrypt and decrypt but doesn't store
+  it. Choose this only when you must hold the keys outside AWS.
+
+  </TabPanel>
+</Tabs>
+
+<Callout type="tip">
+Because SSE-S3 is applied by default, "is my data encrypted at rest?" is already *yes* for new
+objects. The decision is really *which* key management you want — S3-managed, KMS, or your own.
+</Callout>
+
+## Key terms
+
+<KeyTerms>
+  <Term name="Block Public Access">A set of settings, on by default for new buckets, that overrides any policy or ACL which would otherwise make a bucket or its objects public.</Term>
+  <Term name="Bucket policy">A resource policy attached to a bucket that grants or denies access to it, including to other AWS accounts.</Term>
+  <Term name="IAM policy">A policy attached to a user or role that defines what actions that identity may perform, including on S3.</Term>
+  <Term name="ACL">Access control list, an older per-object access mechanism. Disabled by default on new buckets in favour of policies.</Term>
+  <Term name="Server-side encryption">Encryption of object data at rest, performed by S3. SSE-S3 is applied to new objects by default; SSE-KMS and SSE-C are alternatives.</Term>
+</KeyTerms>
