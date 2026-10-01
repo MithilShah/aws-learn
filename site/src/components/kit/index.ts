@@ -8,6 +8,7 @@ import Figure from './Figure.astro';
 import KeyTerms from './KeyTerms.astro';
 import RuleSimulator from './RuleSimulator.astro';
 import ServiceNode from './ServiceNode.astro';
+import ServiceSorter from './ServiceSorter.astro';
 import StepLink from './StepLink.astro';
 import Stepper from './Stepper.astro';
 import TabPanel from './TabPanel.astro';
@@ -23,6 +24,7 @@ export const mdxComponents = {
   KeyTerms,
   RuleSimulator,
   ServiceNode,
+  ServiceSorter,
   StepLink,
   Stepper,
   TabPanel,

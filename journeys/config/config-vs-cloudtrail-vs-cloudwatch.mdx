@@ -11,16 +11,76 @@ sources:
     url: https://docs.aws.amazon.com/awscloudtrail/latest/userguide/cloudtrail-user-guide.html
   - title: "What is Amazon CloudWatch?"
     url: https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/WhatIsCloudWatch.html
-lastVerified: 2026-09-29
+lastVerified: 2026-09-30
 ---
 
 AWS Config, AWS CloudTrail and Amazon CloudWatch all help you keep an eye on your AWS account, so
-they're easy to mix up. Each one answers a different question. AWS Config tells you what a
-resource looked like at a point in time. CloudTrail tells you who made the API call that changed
-it. CloudWatch monitors your resources and applications in real time.
+they're easy to mix up. The quickest way to tell them apart is by the question each one answers.
 
-## What this step covers
+- **AWS Config** — *What did my resource look like?* It keeps a configuration history, so you can
+  see how a resource was set up at any point in time.
+- **AWS CloudTrail** — *Who made the API call?* It records user API activity, including the
+  identity behind each action.
+- **Amazon CloudWatch** — *How is my resource performing?* It collects metrics and logs and raises
+  alarms in near real time.
 
-- The question each service answers
-- How AWS Config and CloudTrail work together
-- A side-by-side comparison
+## Which service answers this?
+
+Try sorting these questions yourself. For each one, pick the service that answers it — then check
+the explanation.
+
+<Figure
+  caption="Assign each question to the service that answers it"
+  description="A sorting exercise. Each of six questions can be assigned to AWS Config, AWS CloudTrail or Amazon CloudWatch, and the exercise keeps score. The questions cover: what a security group looked like in the past (AWS Config), which user made a change (AWS CloudTrail), alerting on CPU usage (Amazon CloudWatch), which resources are noncompliant now (AWS Config), an audit trail of API actions (AWS CloudTrail), and charting log errors on a dashboard (Amazon CloudWatch). Without JavaScript, each question is shown with the service that answers it and why."
+>
+  <ServiceSorter />
+</Figure>
+
+## A side-by-side comparison
+
+| | AWS Config | AWS CloudTrail | Amazon CloudWatch |
+|---|---|---|---|
+| **Answers** | What did my resource look like? | Who made the API call? | How is my resource performing? |
+| **Records** | Configuration items over time | User API activity | Metrics, logs and events |
+| **Good for** | Inventory, change history, compliance | Auditing and security forensics | Monitoring, alarms and dashboards |
+| **Typical output** | Configuration history and compliance | An audit trail of API calls | Graphs, dashboards and alarms |
+
+## How Config and CloudTrail work together
+
+These services aren't rivals — they're often used side by side. AWS Config shows you *what*
+changed; CloudTrail shows you *who* changed it.
+
+The AWS Config FAQ gives a concrete example. Suppose you use AWS Config to detect that the
+security group **"Production-DB"** was incorrectly configured in the past. AWS Config shows you
+the misconfiguration in the resource's history — but not who caused it. Using the integrated
+CloudTrail information, you can then pinpoint which user misconfigured the "Production-DB"
+security group.
+
+<Callout type="misconception">
+A noncompliant finding in AWS Config tells you *what* is wrong, not *who* did it. For the identity
+behind a change, you reach for CloudTrail — the two together give you the full picture. (In fact,
+all AWS Config API activity is itself logged by CloudTrail.)
+</Callout>
+
+## Where to go next
+
+That completes the journey. You've seen what AWS Config is, how it records your resources,
+how rules evaluate them, how remediation fixes what rules find, how packs and aggregators scale
+that across accounts, and how AWS Config sits alongside CloudTrail and CloudWatch.
+
+Good next steps, straight from the AWS documentation:
+
+- Turn on AWS Config in a Region and record a resource type, then watch its configuration history
+  build up — the pipeline from <StepLink service="config" step="how-it-works">how it works</StepLink>.
+- Turn on a managed rule like `encrypted-volumes` and read its evaluation results, from
+  <StepLink service="config" step="config-rules">config rules</StepLink>.
+- Deploy a sample conformance pack to evaluate your environment quickly, from
+  <StepLink service="config" step="conformance-packs-and-aggregators">packs and aggregators</StepLink>.
+
+## Key terms
+
+<KeyTerms>
+  <Term name="AWS Config">Answers "what did my resource look like?" by recording configuration history and evaluating compliance.</Term>
+  <Term name="AWS CloudTrail">Answers "who made the API call?" by recording user API activity and the identity behind each action.</Term>
+  <Term name="Amazon CloudWatch">Answers "how is my resource performing?" by collecting metrics and logs and raising alarms.</Term>
+</KeyTerms>

@@ -1,0 +1,76 @@
+---
+// A click-to-assign exercise: decide whether AWS Config, AWS CloudTrail or
+// Amazon CloudWatch answers each question, then see your score. Without
+// JavaScript it shows an answer key (every question with the service that
+// answers it and why), so the content is complete for search engines and
+// readers without JS. With JavaScript (src/scripts/service-sorter.ts) each
+// question gets three buttons and the component keeps score.
+//   <ServiceSorter />  (self-contained; data in lib/service-sorter-data)
+import { questions, services } from '../../lib/service-sorter-data';
+
+const serviceName = (id: string) => services.find((s) => s.id === id)?.name ?? id;
+---
+<div class="svc-sorter" data-svc-sorter>
+  <noscript>
+    <p class="svc-sorter-note">The answer key. With JavaScript, you assign each question yourself and get a score.</p>
+  </noscript>
+
+  <ol class="svc-sorter-list">
+    {questions.map((q) => (
+      <li class="svc-sorter-q" data-sorter-q data-answer={q.answer}>
+        <p class="svc-sorter-prompt">{q.prompt}</p>
+        <div class="svc-sorter-choices" data-sorter-choices hidden role="group" aria-label={q.prompt}>
+          {services.map((s) => (
+            <button type="button" class="svc-sorter-choice" data-sorter-choice={s.id}>{s.name}</button>
+          ))}
+        </div>
+        <p class="svc-sorter-answer" data-sorter-answer>
+          <span class="svc-sorter-answer-label">Answers it:</span> <strong>{serviceName(q.answer)}</strong> — {q.because}
+        </p>
+      </li>
+    ))}
+  </ol>
+
+  <p class="svc-sorter-score" data-sorter-score hidden aria-live="polite"></p>
+</div>
+
+<script>
+  import '../../scripts/service-sorter';
+</script>
+
+<style>
+  .svc-sorter { margin: 24px 0; }
+  .svc-sorter-note { font-size: 14.5px; color: var(--ink-3); margin: 0 0 10px; }
+  .svc-sorter-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
+  .svc-sorter-q {
+    padding: 14px 16px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: var(--surface);
+  }
+  .svc-sorter-prompt { margin: 0; font-size: 15.5px; font-weight: 600; color: var(--ink); }
+  .svc-sorter-choices { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+  .svc-sorter-choices[hidden] { display: none; }
+  .svc-sorter-choice {
+    padding: 7px 13px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: #fff;
+    font: 600 14px/1.2 var(--font-sans);
+    color: var(--ink-2);
+    cursor: pointer;
+  }
+  .svc-sorter-choice:hover { border-color: var(--w-violet); color: var(--w-violet); }
+  .svc-sorter-choice[aria-pressed='true'] { background: var(--w-violet); border-color: var(--w-violet); color: #fff; }
+  .svc-sorter-q.is-correct { border-color: var(--c-compliant-border); background: var(--c-compliant-bg); }
+  .svc-sorter-q.is-wrong { border-color: var(--c-noncompliant-border); background: var(--c-noncompliant-bg); }
+
+  .svc-sorter-answer { margin: 10px 0 0; font-size: 14.5px; color: var(--ink-3); }
+  .svc-sorter-answer-label { font-weight: 700; color: var(--ink-2); }
+  /* Once interactive, the answer stays hidden until the reader has chosen. */
+  :global(.svc-sorter.is-enhanced) .svc-sorter-answer { display: none; }
+  :global(.svc-sorter.is-enhanced) .svc-sorter-q.is-answered .svc-sorter-answer { display: block; }
+
+  .svc-sorter-score { margin: 16px 0 0; font-size: 15.5px; font-weight: 700; color: var(--ink); }
+  .svc-sorter-score[hidden] { display: none; }
+</style>

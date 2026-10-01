@@ -215,6 +215,41 @@ test.describe('rule simulator', () => {
   });
 });
 
+test.describe('service sorter', () => {
+  test('scores assignments and reveals the explanation for each', async ({ page }) => {
+    await page.goto(KIT);
+    const sorter = page.locator('[data-svc-sorter]');
+    await expect(sorter).toHaveClass(/is-enhanced/);
+    const first = sorter.locator('[data-sorter-q]').first();
+    // Choice buttons are revealed; the answer stays hidden until a choice is made.
+    await expect(first.locator('[data-sorter-choices]')).toBeVisible();
+    await expect(first.locator('[data-sorter-answer]')).toBeHidden();
+
+    // The first question ("…look like last Tuesday?") is answered by AWS Config.
+    await first.getByRole('button', { name: 'AWS CloudTrail' }).click();
+    await expect(first).toHaveClass(/is-wrong/);
+    await expect(first.locator('[data-sorter-answer]')).toBeVisible();
+    await expect(sorter.locator('[data-sorter-score]')).toContainText('0 of 6 correct');
+
+    await first.getByRole('button', { name: 'AWS Config' }).click();
+    await expect(first).toHaveClass(/is-correct/);
+    await expect(sorter.locator('[data-sorter-score]')).toContainText('1 of 6 correct');
+  });
+
+  test('without JavaScript, shows the full answer key', async ({ browser }) => {
+    const page = await browser.newPage({ javaScriptEnabled: false });
+    await page.route('https://gc.zgo.at/**', (route) => route.fulfill({ body: '', contentType: 'application/javascript' }));
+    await page.goto(KIT);
+    const sorter = page.locator('[data-svc-sorter]');
+    await expect(sorter).not.toHaveClass(/is-enhanced/);
+    // Every question shows its answer; choice buttons stay hidden.
+    await expect(sorter.locator('[data-sorter-q]')).toHaveCount(6);
+    await expect(sorter.locator('[data-sorter-answer]').first()).toBeVisible();
+    await expect(sorter.locator('[data-sorter-choices]').first()).toBeHidden();
+    await page.close();
+  });
+});
+
 test.describe('journey map', () => {
   const setProgress = async (page: import('@playwright/test').Page, done: string[]) => {
     await page.evaluate((d) => localStorage.setItem('st-aws:config', JSON.stringify({ v: 1, done: d })), done);
