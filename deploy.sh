@@ -110,7 +110,11 @@ fi
 # ---- Upload via rsync-over-ssh ---------------------------------------------
 SSH_CMD="ssh -p ${SSH_PORT}"
 [[ -n "${SSH_KEY:-}" ]] && SSH_CMD="$SSH_CMD -i ${SSH_KEY}"
-RSYNC_OPTS=(-az --delete --omit-dir-times --no-perms
+# --chmod=D755,F644: force web-safe permissions on upload (dirs traversable,
+# files world-readable) regardless of the server's umask. Without this, rsync
+# can create the destination dir as 750, and Apache — running as another user
+# — then can't read .htaccess and returns 403 ("unable to read htaccess file").
+RSYNC_OPTS=(-az --delete --omit-dir-times --chmod=D755,F644
             --exclude '.DS_Store'
             -e "$SSH_CMD")
 if [[ "$DRY_RUN" == "1" ]]; then
@@ -122,6 +126,9 @@ echo "==> Syncing ./$DIST/ -> ${SSH_USER}@${SSH_HOST}:${REMOTE_PATH}"
 rsync "${RSYNC_OPTS[@]}" "$DIST"/ "${SSH_USER}@${SSH_HOST}:${REMOTE_PATH}/"
 
 if [[ "$DRY_RUN" == "0" ]]; then
+  # rsync's --chmod covers everything it transfers, but the destination root
+  # itself may predate this and keep an older mode — ensure it's traversable.
+  $SSH_CMD "${SSH_USER}@${SSH_HOST}" "chmod 755 '${REMOTE_PATH}'"
   echo "==> Done. Live at: ${PUBLIC_URL:-(set PUBLIC_URL in deploy.config)}"
   echo "    Reminder: submit the sitemap in Google Search Console —"
   echo "      ${PUBLIC_URL%/}/sitemap-index.xml"
