@@ -9,7 +9,7 @@ sources:
     url: https://docs.aws.amazon.com/config/latest/developerguide/WhatIsConfig.html
   - title: "AWS Config FAQs"
     url: https://aws.amazon.com/config/faq/
-lastVerified: 2026-09-29
+lastVerified: 2026-09-30
 ---
 
 An AWS resource is something you work with in AWS, such as an Amazon EC2 instance, an Amazon EBS
@@ -17,9 +17,152 @@ volume, a security group, or an Amazon VPC. As an application grows, so does the
 resources behind it, and keeping track of how each one is set up gets harder. AWS Config keeps
 that record for you.
 
-## What this step covers
+AWS Config is a fully managed service that gives you an inventory of your AWS resources, a
+history of how they were configured, and notifications when those configurations change. In
+short, it answers a question that is otherwise surprisingly hard to answer: *what did this
+resource look like, and when did it change?*
 
-- The problem AWS Config solves
-- Four ways teams use it: resource administration, auditing and compliance, managing and
-  troubleshooting configuration changes, and security analysis
-- What you need before you turn it on
+## The problem AWS Config solves
+
+Picture a single AWS account that has grown over a year: dozens of EC2 instances, a handful of
+security groups, several S3 buckets, and IAM roles that have been edited by different people.
+Someone changes a security group, and a week later traffic that used to work is being blocked.
+Without a record of configurations, you are left guessing: *What was this security group's rule
+set before? Who changed it, and when?*
+
+AWS Config addresses the "what did it look like" half of that question. It watches the resource
+types you choose, and every time one is created, changed, or deleted it records a snapshot of
+that resource's settings. You get a timeline you can look back through, instead of a single
+"current" view that erases its own past.
+
+<Callout type="note">
+AWS Config records *what* a resource looked like at each point in time. A separate service, AWS
+CloudTrail, records *who* made the API call that changed it. The two are complementary, and the
+last step of this journey compares them side by side.
+</Callout>
+
+## Four ways teams use it
+
+The AWS documentation describes four scenarios where AWS Config helps you oversee your
+resources. The tabs below walk through each one with a concrete example.
+
+<Tabs label="Ways to use AWS Config">
+  <TabPanel label="Resource administration">
+
+  You want fine-grained visibility into what resources exist and how they are configured at any
+  time. AWS Config notifies you whenever resources are created, modified, or deleted, so you don't
+  have to poll each resource yourself to notice a change.
+
+  *Example:* a new EBS volume appears in your account overnight. AWS Config records it the moment
+  it is created, so it shows up in your inventory without anyone having to go looking.
+
+  </TabPanel>
+  <TabPanel label="Auditing and compliance">
+
+  Some work needs frequent audits to show it follows internal policies and best practices. To
+  demonstrate compliance, you need the historical configurations of your resources — and that
+  history is exactly what AWS Config keeps.
+
+  *Example:* an auditor asks you to show that a storage resource was configured a certain way
+  three months ago. You open its configuration history instead of trying to reconstruct the past
+  from memory.
+
+  </TabPanel>
+  <TabPanel label="Managing and troubleshooting changes">
+
+  When resources depend on one another, changing one can have unintended effects on the others.
+  AWS Config lets you see how a resource relates to others before you modify it, and lets you fall
+  back on the last known good configuration when something breaks.
+
+  *Example:* before editing a security group, you check which instances rely on it, so you can
+  judge the impact of the change rather than discovering it afterwards.
+
+  </TabPanel>
+  <TabPanel label="Security analysis">
+
+  To spot security weaknesses you need detailed history, such as the IAM permissions granted to a
+  user or the security-group rules that controlled access at a given time.
+
+  *Example:* using AWS Config, you can view whether the user *John Doe* had permission to modify
+  Amazon VPC settings on January 1, 2015 — the exact scenario the AWS documentation uses. You can
+  likewise check which ports a security group left open at a particular moment.
+
+  </TabPanel>
+</Tabs>
+
+## What you need before you turn it on
+
+When you set up AWS Config in a Region, the AWS documentation lists a few things to have in
+place. None of them is complicated, but it helps to know what each one is for.
+
+<Figure
+  caption="What AWS Config connects to when you turn it on"
+  description="AWS Config sits in the centre. An IAM role grants it permission to act. On the right it connects to two destinations: an Amazon S3 bucket, which receives configuration snapshots and the configuration history, and an Amazon SNS topic, which receives notifications when configurations change. A separate note shows that you choose which resource types AWS Config records, inside one AWS Region."
+>
+  <Diagram width={660} height={200} label="AWS Config connects to an IAM role, an Amazon S3 bucket and an Amazon SNS topic">
+    <ServiceNode x={16} y={72} label="IAM role" sublabel="Permissions" tone="amber" />
+    <Arrow from={[176, 100]} to={[250, 100]} label="allows" />
+    <ServiceNode x={250} y={72} label="AWS Config" sublabel="In one Region" tone="violet" />
+    <Arrow from={[410, 90]} to={[484, 48]} label="snapshots + history" />
+    <Arrow from={[410, 112]} to={[484, 150]} label="change notices" />
+    <ServiceNode x={484} y={20} label="Amazon S3" sublabel="Bucket" tone="green" />
+    <ServiceNode x={484} y={122} label="Amazon SNS" sublabel="Topic" tone="teal" />
+  </Diagram>
+</Figure>
+
+- **An active AWS account.** AWS Config runs inside your own account.
+- **An Amazon S3 bucket.** This receives your configuration snapshots and your configuration
+  history — the durable record AWS Config builds up over time.
+- **An Amazon SNS topic.** This receives notifications whenever your configuration snapshots and
+  history change, so other tools or people can react.
+- **An IAM role.** AWS Config needs permission to read your resources and to write to the S3
+  bucket and SNS topic. The IAM role grants exactly that.
+- **The resource types to record.** You decide which resource types AWS Config records, so you can
+  start narrow and expand later.
+
+<Callout type="tip">
+AWS Config records per Region. If you want coverage across several Regions, you set it up in each
+one. The next step, <StepLink service="config" step="how-it-works">how it works</StepLink>, goes
+into recording in detail.
+</Callout>
+
+## What AWS Config can do
+
+Setting up recording is the foundation. On top of it, AWS Config offers a set of features that
+later steps of this journey each explore in depth.
+
+<Figure
+  caption="AWS Config's features, and where this journey covers each one"
+  description="Five features of AWS Config. Resource management: choose which resource types to record and where the data goes. Rules and conformance packs: evaluate whether resources comply with your rules, grouped into packs. Remediation: fix noncompliant resources. Aggregators: get a centralized view across accounts and Regions. Advanced queries: ask questions about the current configuration state of your resources."
+>
+  <Diagram width={660} height={120} label="Five AWS Config features: resource management, rules, remediation, aggregators and advanced queries">
+    <ServiceNode x={8} y={34} width={120} label="Recording" sublabel="Resources" tone="violet" />
+    <ServiceNode x={140} y={34} width={120} label="Rules" sublabel="+ packs" tone="indigo" />
+    <ServiceNode x={272} y={34} width={120} label="Remediation" sublabel="Fix issues" tone="orange" />
+    <ServiceNode x={404} y={34} width={120} label="Aggregators" sublabel="Central view" tone="teal" />
+    <ServiceNode x={536} y={34} width={120} label="Queries" sublabel="Ask SQL" tone="slate" />
+  </Diagram>
+</Figure>
+
+- **Resource management** — choosing which resource types to record and where the data goes.
+  Covered in <StepLink service="config" step="how-it-works">how it works</StepLink>.
+- **Rules and conformance packs** — evaluating whether resources comply with your rules, and
+  grouping those rules into packs. Covered in
+  <StepLink service="config" step="config-rules">config rules</StepLink> and
+  <StepLink service="config" step="conformance-packs-and-aggregators">conformance packs and aggregators</StepLink>.
+- **Remediation** — fixing resources that a rule has flagged as noncompliant. Covered in
+  <StepLink service="config" step="remediation">remediation</StepLink>.
+- **Aggregators** — pulling configuration and compliance data from multiple accounts and Regions
+  into one centralized view. Covered in
+  <StepLink service="config" step="conformance-packs-and-aggregators">conformance packs and aggregators</StepLink>.
+- **Advanced queries** — asking questions about the current configuration state of your
+  resources. Introduced in <StepLink service="config" step="how-it-works">how it works</StepLink>.
+
+## Key terms
+
+<KeyTerms>
+  <Term name="AWS Config">A fully managed service that gives you an inventory of your AWS resources, a history of their configurations, and notifications when those configurations change.</Term>
+  <Term name="AWS resource">An entity you work with in AWS, such as an Amazon EC2 instance, an Amazon EBS volume, a security group, or an Amazon VPC.</Term>
+  <Term name="Configuration history">The record of how a resource was configured over time, delivered to the Amazon S3 bucket you provide.</Term>
+  <Term name="Configuration snapshot">A point-in-time capture of the configurations of the resources AWS Config records, delivered to Amazon S3 on request.</Term>
+</KeyTerms>

@@ -1,0 +1,19 @@
+---
+// A base-aware link to another step in the same journey, for use inside MDX
+// (where withBase/stepPath aren't in scope). Keeps '/aws' out of the content
+// and produces a root-relative href the build can resolve.
+//   <StepLink service="config" step="how-it-works">how it works</StepLink>
+import { stepPath } from '../../lib/journey';
+import { withBase } from '../../lib/urls';
+
+interface Props {
+  /** Service id, e.g. 'config'. */
+  service: string;
+  /** Step slug, e.g. 'how-it-works'. */
+  step: string;
+}
+
+const { service, step } = Astro.props;
+const href = withBase(stepPath(service, step));
+---
+<a href={href}><slot /></a>

@@ -7,6 +7,7 @@ import Diagram from './Diagram.astro';
 import Figure from './Figure.astro';
 import KeyTerms from './KeyTerms.astro';
 import ServiceNode from './ServiceNode.astro';
+import StepLink from './StepLink.astro';
 import Stepper from './Stepper.astro';
 import TabPanel from './TabPanel.astro';
 import Tabs from './Tabs.astro';
@@ -20,6 +21,7 @@ export const mdxComponents = {
   Figure,
   KeyTerms,
   ServiceNode,
+  StepLink,
   Stepper,
   TabPanel,
   Tabs,
