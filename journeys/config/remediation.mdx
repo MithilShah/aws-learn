@@ -11,15 +11,128 @@ sources:
     url: https://docs.aws.amazon.com/config/latest/developerguide/setup-manualremediation.html
   - title: "Setting Up Auto Remediation for AWS Config"
     url: https://docs.aws.amazon.com/config/latest/developerguide/setup-autoremediation.html
-lastVerified: 2026-09-29
+  - title: "AWS-DisableS3BucketPublicReadWrite"
+    url: https://docs.aws.amazon.com/systems-manager-automation-runbooks/latest/userguide/automation-aws-disables3bucketpublicreadwrite.html
+lastVerified: 2026-09-30
 ---
 
-When a rule flags a resource as noncompliant, AWS Config can remediate it using AWS Systems
-Manager Automation documents, which define the actions to take. AWS Config provides managed
-automation documents, and you can also create your own.
+In the <StepLink service="config" step="config-rules">previous step</StepLink> you saw that AWS
+Config rules *detect* problems but don't fix them. Remediation is how you close that gap: it
+takes a resource that a rule flagged as <CompliancePill status="NON_COMPLIANT" /> and runs an
+action to bring it back to <CompliancePill status="COMPLIANT" />.
 
-## What this step covers
+## How remediation works
 
-- How remediation actions work
-- Manual and automatic remediation
-- Managed and custom Automation documents
+AWS Config applies remediation using **AWS Systems Manager (SSM) Automation documents**. An
+Automation document defines the actions to perform on a noncompliant resource. AWS Config provides
+a set of *managed* Automation documents with ready-made remediation actions, and you can also
+create and associate your own *custom* documents. You associate a document with a rule from the
+AWS Management Console or through the API.
+
+<Callout type="note">
+Remediation is a separate, deliberate step after detection. A rule finding a resource
+noncompliant does not change the resource — associating a remediation action, and then running
+it, is what changes anything.
+</Callout>
+
+## Manual or automatic
+
+You choose how remediation is triggered. The flow is the same either way; what differs is who
+pulls the trigger.
+
+<Figure
+  caption="A noncompliant S3 bucket returning to compliant, manually or automatically"
+  description="A four-stage flow shown twice, once for manual and once for automatic remediation. Stage 1: an AWS Config rule flags a public S3 bucket as noncompliant. Stage 2: the remediation is triggered — by a person for manual, or automatically by AWS Config for automatic. Stage 3: AWS Systems Manager runs the AWS-DisableS3BucketPublicReadWrite Automation document against the bucket. Stage 4: the bucket is now compliant. The only difference between the two is who triggers stage 2."
+>
+  <Tabs label="Remediation trigger">
+    <TabPanel label="Manual">
+
+      <Stepper
+        label="Manual remediation of a public S3 bucket"
+        stages={[
+          { title: 'A rule flags the bucket.', text: 's3-bucket-public-read-prohibited reports the bucket as noncompliant.' },
+          { title: 'A person triggers remediation.', text: 'You select the resource and choose to remediate it.' },
+          { title: 'SSM runs the Automation document.', text: 'AWS-DisableS3BucketPublicReadWrite applies S3 Block Public Access.' },
+          { title: 'The bucket is compliant.', text: 'Public read and write access is removed; the rule now passes.' },
+        ]}
+      >
+        <Diagram width={700} height={150} label="Manual remediation: a flagged bucket, a person triggering, SSM running a document, a compliant bucket">
+          <ServiceNode x={6} y={48} width={150} label="S3 bucket" sublabel="Public: NON_COMPLIANT" tone="red" stage="1" />
+          <Arrow from={[156, 76]} to={[212, 76]} label="you act" stage="2" />
+          <ServiceNode x={212} y={48} width={150} label="You" sublabel="Trigger remediation" tone="amber" stage="2" />
+          <Arrow from={[362, 76]} to={[418, 76]} label="run" stageFrom={3} />
+          <ServiceNode x={418} y={48} width={160} label="Systems Manager" sublabel="Automation document" tone="violet" stage="3" />
+          <Arrow from={[578, 76]} to={[634, 76]} label="fixed" stageFrom={4} dashed />
+          <ServiceNode x={592} y={48} width={102} label="S3 bucket" sublabel="COMPLIANT" tone="green" stageFrom={4} />
+        </Diagram>
+      </Stepper>
+
+    </TabPanel>
+    <TabPanel label="Automatic">
+
+      <Stepper
+        label="Automatic remediation of a public S3 bucket"
+        stages={[
+          { title: 'A rule flags the bucket.', text: 's3-bucket-public-read-prohibited reports the bucket as noncompliant.' },
+          { title: 'AWS Config triggers remediation.', text: 'The associated remediation runs automatically, with no person involved.' },
+          { title: 'SSM runs the Automation document.', text: 'AWS-DisableS3BucketPublicReadWrite applies S3 Block Public Access.' },
+          { title: 'The bucket is compliant.', text: 'Public read and write access is removed; the rule now passes.' },
+        ]}
+      >
+        <Diagram width={700} height={150} label="Automatic remediation: a flagged bucket, AWS Config triggering, SSM running a document, a compliant bucket">
+          <ServiceNode x={6} y={48} width={150} label="S3 bucket" sublabel="Public: NON_COMPLIANT" tone="red" stage="1" />
+          <Arrow from={[156, 76]} to={[212, 76]} label="auto" stage="2" />
+          <ServiceNode x={212} y={48} width={150} label="AWS Config" sublabel="Triggers automatically" tone="violet" stage="2" />
+          <Arrow from={[362, 76]} to={[418, 76]} label="run" stageFrom={3} />
+          <ServiceNode x={418} y={48} width={160} label="Systems Manager" sublabel="Automation document" tone="violet" stage="3" />
+          <Arrow from={[578, 76]} to={[634, 76]} label="fixed" stageFrom={4} dashed />
+          <ServiceNode x={592} y={48} width={102} label="S3 bucket" sublabel="COMPLIANT" tone="green" stageFrom={4} />
+        </Diagram>
+      </Stepper>
+
+    </TabPanel>
+  </Tabs>
+</Figure>
+
+- **Manual remediation** gives you a reviewed, deliberate fix: a resource is flagged, and a
+  person decides to run the remediation. Good when a change needs a human to confirm it's safe.
+- **Automatic remediation** closes the loop without anyone watching: once associated, the action
+  runs as soon as the resource is noncompliant. Good for well-understood fixes you trust to run
+  unattended.
+
+<Callout type="tip">
+If an automatic remediation doesn't succeed, AWS Config can retry. Start a new remediation with
+manual triggering while you build confidence in an action, then switch it to automatic once you
+trust it.
+</Callout>
+
+## The example document
+
+The flow above uses a real managed Automation document, **`AWS-DisableS3BucketPublicReadWrite`**.
+It uses Amazon S3 Block Public Access to disable public read and write access on a bucket. It
+takes the bucket name (`S3BucketName`, required) and an optional IAM role
+(`AutomationAssumeRole`) that lets Systems Manager act on your behalf. Paired with the
+`s3-bucket-public-read-prohibited` rule, it turns "this bucket is public" into "this bucket is
+locked down" with a single, repeatable action.
+
+## Managed and custom documents
+
+As with rules, you don't have to build everything yourself:
+
+- **Managed Automation documents** — AWS provides a prepopulated list of remediation actions in
+  the console, like `AWS-DisableS3BucketPublicReadWrite`.
+- **Custom Automation documents** — when no managed document does what you need, you write your
+  own SSM document and associate it with the rule.
+
+Remediation handles one resource at a time. The next step,
+<StepLink service="config" step="conformance-packs-and-aggregators">conformance packs and
+aggregators</StepLink>, scales rules and their remediations up to many accounts and Regions.
+
+## Key terms
+
+<KeyTerms>
+  <Term name="Remediation">An action AWS Config runs to bring a noncompliant resource back into compliance, defined by an SSM Automation document.</Term>
+  <Term name="SSM Automation document">An AWS Systems Manager document that defines the actions to perform on a noncompliant resource. AWS Config provides managed documents, and you can create custom ones.</Term>
+  <Term name="Manual remediation">Remediation that a person triggers after a resource is flagged noncompliant.</Term>
+  <Term name="Automatic remediation">Remediation that AWS Config runs on its own as soon as a resource is noncompliant, once the action is associated with the rule.</Term>
+</KeyTerms>
